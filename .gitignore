@@ -1,0 +1,10 @@
+venv*
+data/
+__pycache__/
+build/
+dist/
+setup.py
+notes.txt
+*.spec
+*.pkl
+*.egg-info
