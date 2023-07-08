@@ -1,3 +1,11 @@
+"""A basic MNIST example using JAX with the mini-libraries stax and optimizers.
+
+The mini-library jax.example_libraries.stax is for neural network building, and
+the mini-library jax.example_libraries.optimizers is for first-order stochastic
+optimization.
+"""
+
+
 import time
 import itertools
 
@@ -8,7 +16,7 @@ from jax import jit, grad, random
 from jax.example_libraries import optimizers
 from jax.example_libraries import stax
 from jax.example_libraries.stax import Dense, Relu, LogSoftmax
-import datasets
+import datasets as datasets
 
 
 def loss(params, batch):
@@ -71,5 +79,5 @@ if __name__ == "__main__":
     train_acc = accuracy(params, (train_images, train_labels))
     test_acc = accuracy(params, (test_images, test_labels))
     print(f"Epoch {epoch} in {epoch_time:0.2f} sec")
-    print(f"Training set accuracy {train_acc}")
-    print(f"Test set accuracy {test_acc}")
+    print(f"Training set accuracy {train_acc:0.2f}")
+    print(f"Test set accuracy {test_acc:0.2f}")

@@ -3,8 +3,10 @@ import jax.numpy as jnp
 
 def serial(*layers):
   """Combinator for composing layers in serial.
+
   Args:
     *layers: a sequence of layers, each an (init_fun, apply_fun) pair.
+
   Returns:
     A new layer, meaning an (init_fun, apply_fun) pair, representing the serial
     composition of the given sequence of layers.
@@ -17,7 +19,7 @@ def serial(*layers):
       rng, layer_rng = random.split(rng)
       input_shape, param = init_fun(layer_rng, input_shape)
       params.append(param)
-    return params
+    return input_shape, params
   def apply_fun(params, inputs, **kwargs):
     rng = kwargs.pop('rng', None)
     rngs = random.split(rng, nlayers) if rng is not None else (None,) * nlayers
