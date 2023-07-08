@@ -25,3 +25,14 @@ venvGeeroNet/scripts/activate.bat
 
 pip install -r requirements.txt
 ```
+
+### Selecting LOGLEVEL
+
+Available log levels:
+- INFO
+- WARN (Default)
+- DEBUG
+
+```
+export LOGLEVEL=INFO
+```

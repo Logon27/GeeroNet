@@ -1,7 +1,7 @@
-from jax import grad
 from jax import random
 import jax.numpy as jnp
-from jax.nn.initializers import glorot_normal, normal, ones, zeros
+from jax.nn.initializers import glorot_normal, normal
+import logging
 
 def Dense(out_dim, weight_init=glorot_normal(), bias_init=normal()):
   """Layer constructor function for a dense (fully-connected) layer."""
@@ -13,7 +13,11 @@ def Dense(out_dim, weight_init=glorot_normal(), bias_init=normal()):
     return out_dim, (weights, bias)
     
   def apply_fun(params, inputs, **kwargs):
+    if inputs.ndim <= 1:
+      raise ValueError("Input must be at least 2 dimensional. This helps eliminate any confusion with mixing vector and matrix multiplication.")
+    
     weights, bias = params
-    return jnp.dot(weights, inputs) + bias
+    logging.info('W{} @ I{} + B{}'.format(weights.shape, inputs.shape, bias.shape))
+    return jnp.matmul(weights, inputs) + bias
     
   return init_fun, apply_fun
