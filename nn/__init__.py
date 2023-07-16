@@ -2,7 +2,7 @@
 from .layers.dense import Dense
 
 # Layer Containers
-from .containers.serial import serial
+from .composers.serial import serial
 
 # Optimizers
 from .optimizers.sgd import sgd

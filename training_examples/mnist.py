@@ -15,7 +15,7 @@ import numpy.random as npr
 
 import jax.numpy as jnp
 from jax import jit, grad, random
-from jax.example_libraries.stax import Relu, LogSoftmax
+from jax.example_libraries.stax import Relu, LogSoftmax, Sigmoid
 import datasets as datasets
 
 from nn import *
@@ -41,12 +41,21 @@ net_init, net_predict = serial(
     LogSoftmax
 )
 
+# net_init, net_predict = serial(
+#     Dense(70),
+#     Sigmoid,
+#     Dense(35),
+#     Sigmoid,
+#     Dense(10),
+#     LogSoftmax
+# )
+
 if __name__ == "__main__":
     rng = random.PRNGKey(0)
 
     step_size = 0.001  # Learning rate???
     num_epochs = 10
-    batch_size = 128
+    batch_size = 128 # 128
     momentum_mass = 0.9
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
@@ -88,8 +97,8 @@ if __name__ == "__main__":
         train_acc = accuracy(params, (train_images, train_labels))
         test_acc = accuracy(params, (test_images, test_labels))
         print(
-            "{}/{}, Accuracy Train = {:.2%}, Accuracy Test = {:.2%}, in {:.2f} seconds".format(
-                (epoch + 1), num_epochs, train_acc, test_acc, epoch_time
+            "{:>{}}/{}, Accuracy Train = {:.2%}, Accuracy Test = {:.2%}, in {:.2f} seconds".format(
+                (epoch + 1), len(str(num_epochs)), num_epochs, train_acc, test_acc, epoch_time
             )
         )
 

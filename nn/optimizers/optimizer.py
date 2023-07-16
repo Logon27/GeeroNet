@@ -201,21 +201,22 @@ def optimizer(
         def tree_update(i, grad_tree, opt_state):
             # opt_init returns a pytree of the OptimizerState object. So you must be able to just parse out the three list elements seen here...
             # E.g. OptimizerState = namedtuple("OptimizerState", ["packed_state", "tree_def", "subtree_defs"])
-            states_flat, tree, subtrees = opt_state
-            # the grad_tree is flattened to ensure it has the same definition as the opt_state pytree.
-            grad_flat, tree2 = tree_flatten(grad_tree)
-            if tree2 != tree:
+            states_flat, state_treedef, subtrees = opt_state
+            # Note that 'grad_tree' is a pytree with the same structure as 'params'. 
+            # jax.grad returns this pytree automatically when the function is called.
+            # 'jax.grad' is one of the many JAX functions that has built-in support for pytrees.
+            grad_flat, grad_treedef = tree_flatten(grad_tree)
+            if grad_treedef != state_treedef:
                 msg = (
                     "optimizer update function was passed a gradient tree that did "
                     "not match the parameter tree structure with which it was "
                     "initialized: parameter tree {} and grad tree {}."
                 )
-                raise TypeError(msg.format(tree, tree2))
+                raise TypeError(msg.format(state_treedef, grad_treedef))
             states = map(tree_unflatten, subtrees, states_flat)
             # The second and third parameters to the update function are a list of leafs.
             # And each leaf needs to be mapped to the partial function of update with 'i' already applied.
             # The map is necessary because you cannot multiply or subtract by a list inside the update function. You have to map the individual elements.
-            # swapped map to tree_map
             new_states = tree_map(partial(update, i), grad_flat, states)
             new_states_flat, subtrees2 = unzip2(map(tree_flatten, new_states))
             for subtree, subtree2 in zip(subtrees, subtrees2):
@@ -225,7 +226,7 @@ def optimizer(
                         "did not match its input structure: input {} and output {}."
                     )
                     raise TypeError(msg.format(subtree, subtree2))
-            return OptimizerState(new_states_flat, tree, subtrees)
+            return OptimizerState(new_states_flat, state_treedef, subtrees)
 
         @functools.wraps(get_params)
         def tree_get_params(opt_state):
