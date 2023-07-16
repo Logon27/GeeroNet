@@ -21,21 +21,16 @@ import datasets as datasets
 from nn import *
 
 
-def mean_squared_error(params, batch):
+def loss(params, batch):
     inputs, targets = batch
-    preds = net_predict(params, inputs)
-    return jnp.mean(jnp.power(jnp.sum(preds * targets, axis=1), 2))
-
-# def mean_squared_error(preds, targets):
-#   return jnp.mean(jnp.power(jnp.sum(preds * targets, axis=1), 2))
-
+    predictions = net_predict(params, inputs)
+    return categorical_cross_entropy(predictions, targets)
 
 def accuracy(params, batch):
     inputs, targets = batch
     target_class = jnp.argmax(targets, axis=1)
     predicted_class = jnp.argmax(net_predict(params, inputs), axis=1)
     return jnp.mean(predicted_class == target_class)
-
 
 net_init, net_predict = serial(
     Dense(1024),
@@ -75,7 +70,7 @@ if __name__ == "__main__":
     @jit
     def update(i, opt_state, batch):
         params = get_params(opt_state)
-        return opt_update(i, grad(mean_squared_error)(params, batch), opt_state)
+        return opt_update(i, grad(loss)(params, batch), opt_state)
 
     _, init_params = net_init(rng, 28 * 28)
     opt_state = opt_init(init_params)

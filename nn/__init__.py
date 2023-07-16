@@ -9,7 +9,9 @@ from .optimizers.sgd import sgd
 from .optimizers.momentum import momentum
 
 # Loss Functions
-# from .losses.mean_squared_error import mean_squared_error
+from .losses.mean_squared_error import mean_squared_error
+from .losses.categorical_cross_entropy import categorical_cross_entropy
+from .losses.binary_cross_entropy import binary_cross_entropy
 
 # Set logging level based on environment variable
 import logging

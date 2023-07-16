@@ -215,7 +215,8 @@ def optimizer(
             # The second and third parameters to the update function are a list of leafs.
             # And each leaf needs to be mapped to the partial function of update with 'i' already applied.
             # The map is necessary because you cannot multiply or subtract by a list inside the update function. You have to map the individual elements.
-            new_states = map(partial(update, i), grad_flat, states)
+            # swapped map to tree_map
+            new_states = tree_map(partial(update, i), grad_flat, states)
             new_states_flat, subtrees2 = unzip2(map(tree_flatten, new_states))
             for subtree, subtree2 in zip(subtrees, subtrees2):
                 if subtree2 != subtree:
