@@ -4,6 +4,13 @@ from .layers.dense import Dense
 # Layer Containers
 from .containers.serial import serial
 
+# Optimizers
+from .optimizers.sgd import sgd
+from .optimizers.momentum import momentum
+
+# Loss Functions
+# from .losses.mean_squared_error import mean_squared_error
+
 # Set logging level based on environment variable
 import logging
 import os

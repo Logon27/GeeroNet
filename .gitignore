@@ -8,3 +8,4 @@ notes.txt
 *.spec
 *.pkl
 *.egg-info
+.vscode/
