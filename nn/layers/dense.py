@@ -13,7 +13,6 @@ def Dense(out_dim, weight_init=glorot_normal(), bias_init=normal()):
         weights, bias = weight_init(k1, (input_shape, out_dim)), bias_init(
             k2, (1, out_dim)
         )
-        logging.info("W_shape: {}, B_shape: {}".format(weights.shape, bias.shape))
         return out_dim, (weights, bias)
 
     def apply_fun(params, inputs, **kwargs):
@@ -23,12 +22,11 @@ def Dense(out_dim, weight_init=glorot_normal(), bias_init=normal()):
             )
 
         weights, bias = params
-        logging.info(
-            "{:<15} @ {:<15} + {:<15}".format(
-                "I" + str(inputs.shape), "W" + str(weights.shape), "B" + str(bias.shape)
-            )
-        )
-        # print("{}".format((jnp.matmul(inputs, weights) + bias).shape))
+        # logging.info(
+        #     "{:<15} @ {:<15} + {:<15}".format(
+        #         "I" + str(inputs.shape), "W" + str(weights.shape), "B" + str(bias.shape)
+        #     )
+        # )
         return jnp.matmul(inputs, weights) + bias
 
     return init_fun, apply_fun

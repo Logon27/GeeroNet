@@ -97,7 +97,6 @@ from functools import partial
 
 import jax.numpy as jnp
 from jax._src.util import safe_zip, safe_map, unzip2
-from jax import tree_util
 from jax.tree_util import tree_map, tree_flatten, tree_unflatten, register_pytree_node
 
 
@@ -186,6 +185,7 @@ def optimizer(
 
     # The wrappers are necessary because we JIT the update function.
     # And jax has to work with pytrees for transformation functions like jit.
+    # Which by default, the optimizer state is not a pytree.
     @functools.wraps(opt_maker)
     def tree_opt_maker(*args, **kwargs):
         init, update, get_params = opt_maker(*args, **kwargs)

@@ -20,7 +20,14 @@ import datasets as datasets
 
 from nn import *
 
+# The loss function produces a single error value representing the effiency of the network. 
+# The gradient of the error with respect to the output of the final layer is just...
+# the derivative of the loss function applied elementwise to the output (prediction) array of the network.
 
+# The gradient of the error with respect to the input of the last layer is equivalent to...
+# the gradient of the error with respect to the output of the second to last layer.
+# Which means by using automatic differentiation (the chain rule) to calculate the gradient of the error with respect to the input...
+# we can calculate all the gradients of the network by just knowning the error function.
 def loss(params, batch):
     inputs, targets = batch
     predictions = net_predict(params, inputs)
@@ -53,7 +60,7 @@ net_init, net_predict = serial(
 if __name__ == "__main__":
     rng = random.PRNGKey(0)
 
-    step_size = 0.001  # Learning rate???
+    learning_rate = 0.001  # Learning rate???
     num_epochs = 10
     batch_size = 128 # 128
     momentum_mass = 0.9
@@ -73,7 +80,7 @@ if __name__ == "__main__":
 
     batches = data_stream()
 
-    opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
+    opt_init, opt_update, get_params = momentum(learning_rate, mass=momentum_mass)
     # opt_init, opt_update, get_params = sgd(step_size)
 
     @jit

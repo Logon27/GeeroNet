@@ -1,4 +1,6 @@
 from jax import random
+import logging
+from ..print_utils.print_params import *
 
 def serial(*layers):
   """Combinator for composing layers in serial.
@@ -18,6 +20,11 @@ def serial(*layers):
       rng, layer_rng = random.split(rng)
       input_shape, param = init_fun(layer_rng, input_shape)
       params.append(param)
+
+    if logging.getLevelName(logging.root.level) == "INFO":
+      print_params(params)
+
+    # input_shape at this point represents the final layer's output dimension
     return input_shape, params
   def apply_fun(params, inputs, **kwargs):
     rng = kwargs.pop('rng', None)

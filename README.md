@@ -26,6 +26,11 @@ venvGeeroNet/scripts/activate.bat
 pip install -r requirements.txt
 ```
 
+If you are having trouble getting the venv to activate when it has worked properly in the past...
+```
+CTRL + SHIFT + P -> Search 'Reload' -> Click 'Python: Clear Cache and Reload Window'
+```
+
 ### Selecting LOGLEVEL
 
 Available log levels:
