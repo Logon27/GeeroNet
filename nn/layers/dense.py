@@ -2,6 +2,7 @@ from jax import random
 from jax.nn.initializers import glorot_normal, normal
 import jax.numpy as jnp
 import logging
+import jax
 
 
 def Dense(out_dim, weight_init=glorot_normal(), bias_init=normal()):
@@ -22,11 +23,10 @@ def Dense(out_dim, weight_init=glorot_normal(), bias_init=normal()):
             )
 
         weights, bias = params
-        # logging.info(
-        #     "{:<15} @ {:<15} + {:<15}".format(
-        #         "I" + str(inputs.shape), "W" + str(weights.shape), "B" + str(bias.shape)
-        #     )
-        # )
+        if logging.getLevelName(logging.root.level) == "INFO2":
+            jax.debug.print("I({}, {}) @ W({}, {}) + B({}, {})",
+                inputs.shape[0], inputs.shape[1], weights.shape[0], weights.shape[1], bias.shape[0], bias.shape[1],
+            )
         return jnp.matmul(inputs, weights) + bias
 
     return init_fun, apply_fun

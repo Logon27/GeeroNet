@@ -1,6 +1,7 @@
 from jax import random
 import logging
 from ..print_utils.print_params import *
+import jax
 
 def serial(*layers):
   """Combinator for composing layers in serial.
@@ -27,9 +28,17 @@ def serial(*layers):
     # input_shape at this point represents the final layer's output dimension
     return input_shape, params
   def apply_fun(params, inputs, **kwargs):
+    if logging.getLevelName(logging.root.level) == "INFO2":
+      jax.debug.print("=== Start Forward Pass Execution ===")
+
     rng = kwargs.pop('rng', None)
     rngs = random.split(rng, num_layers) if rng is not None else (None,) * num_layers
     for fun, param, rng in zip(apply_funs, params, rngs):
       inputs = fun(param, inputs, rng=rng, **kwargs)
+    
+    if logging.getLevelName(logging.root.level) == "INFO2":
+        jax.debug.print("=== End Forward Pass Execution ===")
+        jax.debug.breakpoint()
+    
     return inputs
   return init_fun, apply_fun
