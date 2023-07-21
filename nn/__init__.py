@@ -16,14 +16,21 @@ from .losses.binary_cross_entropy import binary_cross_entropy
 # Set logging level based on environment variable. See Readme for level details.
 import logging
 import os
+from jax.config import config
+
 valid_debug_modes = {'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'INFO2', 'DEBUG', 'NOTSET'}
-if os.environ.get('LOGLEVEL') is not None and os.environ.get('LOGLEVEL') in valid_debug_modes:
+LOG_LEVEL = os.environ.get('LOGLEVEL')
+if LOG_LEVEL is not None and LOG_LEVEL in valid_debug_modes:
     logging.addLevelName(19, "INFO2")
     logging.basicConfig(
         format='%(levelname)s: %(message)s',
-        level=os.environ.get('LOGLEVEL').upper()
+        level=LOG_LEVEL.upper()
     )
+    if LOG_LEVEL == "INFO2":
+        logging.info("Disabling JIT for better debugging.")
+        logging.info("Expect first iteration time estimates to be longer.")
+        config.update('jax_disable_jit', True)
 else:
-    if os.environ.get('LOGLEVEL') is not None:
+    if LOG_LEVEL is not None:
         print("Unknown Log Level! Using basic config.")
     logging.basicConfig()

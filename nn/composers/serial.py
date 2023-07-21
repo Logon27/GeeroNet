@@ -1,7 +1,36 @@
 from jax import random
-import logging
-from ..print_utils.print_params import *
 import jax
+import logging
+import time
+import functools
+from ..print_utils.print_params import *
+
+
+def time_fun(func):
+    
+    @functools.wraps(func)
+    def apply_fun(*args, **kwargs):
+        if logging.getLevelName(logging.root.level) == "INFO2":
+            # Before Execution
+            jax.debug.print("\n=== Start Forward Pass Execution ===")
+            start_time_forward = time.time()
+
+            result = func(*args, **kwargs)
+        
+            # After Execution
+            end_time_forward = time.time()
+            time_elapsed_ms = (end_time_forward - start_time_forward) * 1000
+            jax.debug.print("Forward Pass Took: {:.2f} ms", time_elapsed_ms)
+            jax.debug.print("=== End Forward Pass Execution ===\n")
+            jax.debug.breakpoint()
+        else:
+            return func(*args, **kwargs)
+		
+        # returning the value to the original frame
+        return result
+
+    return apply_fun
+
 
 def serial(*layers):
   """Combinator for composing layers in serial.
@@ -15,6 +44,7 @@ def serial(*layers):
   """
   num_layers = len(layers)
   init_funs, apply_funs = zip(*layers)
+
   def init_fun(rng, input_shape):
     params = []
     for init_fun in init_funs:
@@ -27,18 +57,14 @@ def serial(*layers):
 
     # input_shape at this point represents the final layer's output dimension
     return input_shape, params
+  
+  @time_fun
   def apply_fun(params, inputs, **kwargs):
-    if logging.getLevelName(logging.root.level) == "INFO2":
-      jax.debug.print("=== Start Forward Pass Execution ===")
 
     rng = kwargs.pop('rng', None)
     rngs = random.split(rng, num_layers) if rng is not None else (None,) * num_layers
     for fun, param, rng in zip(apply_funs, params, rngs):
-      inputs = fun(param, inputs, rng=rng, **kwargs)
-    
-    if logging.getLevelName(logging.root.level) == "INFO2":
-        jax.debug.print("=== End Forward Pass Execution ===")
-        jax.debug.breakpoint()
-    
+      inputs = fun(param, inputs, rng=rng, **kwargs)  
     return inputs
+  
   return init_fun, apply_fun
