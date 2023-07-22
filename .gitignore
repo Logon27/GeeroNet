@@ -5,6 +5,7 @@ build/
 dist/
 setup.py
 notes.txt
+planning.txt
 *.spec
 *.pkl
 *.egg-info

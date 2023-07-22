@@ -1,0 +1,4 @@
+jax[cpu]
+# Used for data loading
+torch
+torchvision

@@ -7,7 +7,12 @@ from ..print_utils.print_params import *
 
 
 def time_fun(func):
+    """
+    Decorator to print the execution time of the forward pass for INFO2 loglevel.
     
+    Printing of the execution time will only work when JIT is disabled.
+    By default the INFO2 loglevel disables JIT automatically.
+    """
     @functools.wraps(func)
     def apply_fun(*args, **kwargs):
         if logging.getLevelName(logging.root.level) == "INFO2":

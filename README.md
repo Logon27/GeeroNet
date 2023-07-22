@@ -1,35 +1,54 @@
 # GeeroNet
 
-## Installing Google Jax
-```
-pip install --upgrade pip
-pip install --upgrade "jax[cpu]"
-```
+GeeroNet is a simple neural network library built using [Google Jax](https://github.com/google/jax). This library is mainly for educational purposes and to experiment with deep learning methods.
 
-## Installing Pytorch (Used For Data Loading)
-```
-pip install torch torchvision
-```
+## Setup and Installation
 
-## Setting Up A Venv
-```
+### Setting up a venv
+
+#### Create a virtual environment
+
+```bash
 python -m venv venvGeeroNet
+```
 
+#### Activate your virtual environment
+```bash
 # Linux (WSL2)
 . venvGeeroNet/bin/activate
 
+# Alternate Linux Method
 source venvGeeroNet/bin/activate
 
 # Windows
 venvGeeroNet/scripts/activate.bat
-
-pip install -r requirements.txt
 ```
+
+#### Troubleshooting venv activation
 
 If you are having trouble getting the venv to activate when it has worked properly in the past...
 ```
 CTRL + SHIFT + P -> Search 'Reload' -> Click 'Python: Clear Cache and Reload Window'
 ```
+
+### Installing dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### WSL2 GUI Setup (required for graphics)
+
+If using WSL2 on Windows. Please install python3-tk. This will give you a backend for GUIs. Otherwise matplotlib and similar features will not work.
+
+```bash
+sudo apt-get install python3-tk
+```
+
+---
+
+## Geero Configuration
 
 ### Selecting LOGLEVEL
 
