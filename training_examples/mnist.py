@@ -17,6 +17,7 @@ import jax.numpy as jnp
 from jax import jit, grad, random
 from jax.example_libraries.stax import Relu, LogSoftmax, Sigmoid
 import datasets as datasets
+import matplotlib.pyplot as plt
 
 from nn import *
 
@@ -75,6 +76,8 @@ if __name__ == "__main__":
         while True:
             perm = rng.permutation(num_train)
             for i in range(num_batches):
+                # batch_idx is a list of indices.
+                # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
                 yield train_images[batch_idx], train_labels[batch_idx]
 
@@ -116,3 +119,24 @@ if __name__ == "__main__":
             training_end_time - training_start_time, time_elapsed_mins
         )
     )
+
+    # Visual Debug After Training
+    rows = 5
+    columns = 10
+    fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
+    fig.canvas.manager.set_window_title('Network Predictions')
+    # "i" represents the test set starting index.
+    i = 0
+    params = get_params(opt_state)
+    for j in range(rows):
+        for k in range(columns):
+            output = net_predict(params, test_images[i].reshape(1, test_images[i].shape[0]))
+            prediction = jnp.argmax(output, axis=1)
+            # Convert to a string to prevent an error with cupy
+            prediction = str(prediction)
+            axes[j][k].set_title(prediction)
+            axes[j][k].imshow(test_images[i].reshape(28, 28), cmap='gray')
+            axes[j][k].get_xaxis().set_visible(False)
+            axes[j][k].get_yaxis().set_visible(False)
+            i += 1
+    plt.show()
