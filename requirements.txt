@@ -1,6 +1,3 @@
 jax[cpu]
-# Used for data loading
-torch
-torchvision
 # Used for visualization
 matplotlib

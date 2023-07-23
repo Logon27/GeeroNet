@@ -19,9 +19,6 @@ python -m venv venvGeeroNet
 
 # Alternate Linux Method
 source venvGeeroNet/bin/activate
-
-# Windows
-venvGeeroNet/scripts/activate.bat
 ```
 
 #### Troubleshooting venv activation
