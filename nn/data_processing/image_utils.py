@@ -1,16 +1,69 @@
 import jax.numpy as jnp
 from jax.image import scale_and_translate
+from jax import random
+# For image rotation
+from scipy.ndimage import rotate
 # For image debugging
 from PIL import Image as im
 import numpy as np
 
-# Helper Functions To Randomize Training Inputs
+# Need to implement clipped zoom.
 
-# Noise method
+# JIT IN-COMPATIBLE
+def rotate_image(device_array, angle: float):
+    """Rotate jax images for experimentation and debugging.
 
-# Rotation method
+    Args:
+        device_array: 2 dimensional jax array.
+        angle (float): The angle to rotate the image.
 
-# Translation method
+    Example:
+        Usage for mnist. Rotate image 45 degrees::
+
+        image_array = jnp.reshape(train_images[0] * 256, (28,28))
+        image_array = rotate_image(image_array, 45)
+    
+    Returns:
+        jax_array: The rotated image as an array.
+    """
+    device_array = rotate(device_array, angle=angle, reshape=False)
+    return device_array
+
+# Performance and parameters can probably be improved.
+def noisify_image(device_array, rng, num_noise_iterations: int = 5, percentage_noise = 0.5, noise_value_low: int = 50, noise_value_high: int = 255):
+    """Add random noise to jax images for experimentation and debugging.
+
+    For each noise iteration a single noise value is picked. Then that single noise value is applied to the image based on the noise percentage.
+    This means for each noise iteration, a noise value can be applied to multiple pixels based on the percentage.
+
+    Args:
+        device_array: 2 dimensional jax array.
+        rng (PRNGKey): The PRNGKey to pull random values from.
+        num_noise_iterations: The number of unique noise values applied to the image.
+        percentage_noise: The percentage chance that a single noise value replaces a pixel in the image.
+            A single noise value can be applied more than once.
+        noise_value_low: The minimum possible noise value.
+        noise_value_high: The maximum possible noise value.
+
+    Example:
+        Usage for mnist::
+
+        image_array = jnp.reshape(train_images[0] * 256, (28,28))
+        image_array = noisify_image(image_array, rng)
+    
+    Returns:
+        jax_array: The noisified image as an array.
+    """
+    frac = percentage_noise / 100
+    # Each iteration only applies a single noise value (possibly multiple times).
+    # So typically you want a really low noise percentage and a higher number of iterations.
+    # That way you get a bunch of unique noise values applied a small number of times.
+    for _ in range(num_noise_iterations):
+        rng, noise_rng = random.split(rng)
+        random_int = random.randint(noise_rng, (1,), noise_value_low, noise_value_high)
+        device_array[random.uniform(noise_rng, device_array.shape) < frac] = random_int
+    return device_array
+
 def translate_image(device_array, vertical_shift: float, horizontal_shift: float):
     """Translate jax images for experimentation and debugging.
 
@@ -78,7 +131,7 @@ def scale_image(device_array, scale_factor: float, method='linear'):
         method=method
     )
 
-# Need to replace this method with something more elaborate so i can scale down images too.
+# Only used for upscaling images with no interpolation.
 def upscale_image(device_array, scale_factor: int):
     """Used to scale up jax images for experimentation and debugging. This function enlarges the array by repeating existing values. There is no interpolation.
 

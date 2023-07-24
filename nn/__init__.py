@@ -14,7 +14,7 @@ from .losses.categorical_cross_entropy import categorical_cross_entropy
 from .losses.binary_cross_entropy import binary_cross_entropy
 
 # Image processing functionality
-from .data_processing.image_utils import save_image, upscale_image, scale_image, translate_image
+from .data_processing.image_utils import save_image, upscale_image, scale_image, translate_image, noisify_image, rotate_image
 
 # Set logging level based on environment variable. See Readme for level details.
 import logging
