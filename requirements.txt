@@ -1,3 +1,6 @@
 jax[cpu]
+# Used for image debug utilities
+numpy
+Pillow
 # Used for visualization
 matplotlib

@@ -49,7 +49,7 @@ sudo apt-get install python3-tk
 
 ### Selecting LOGLEVEL
 
-| Logging Level | Value | Notes |
+| Logging Level | Value         | Notes |
 | ------------- | ------------- | ----- |
 | CRITICAL      | 50            |       |
 | ERROR         | 40            |       |
@@ -64,7 +64,20 @@ export LOGLEVEL=INFO
 
 # To unset environment variable
 unset LOGLEVEL
+
+# Or...
+LOGLEVEL=INFO python mnist.py
 ```
+
+### Environment Variables
+
+This is a list of environment variables that control the behavior of Geero at runtime.
+
+Example: `DISABLE_JIT=1 python mnist.py`
+
+| Variable    | Possible Values | Notes |
+| ----------- | --------------- | ----- |
+| DISABLE_JIT | [1]             | Disable JIT for debugging purposes |
 
 ### Breakpoint Debugging (INFO2)
 
@@ -79,3 +92,11 @@ For some logging levels, breakpoints are set within the code. This is to aid in 
 - **l(ist)** - print out code context
 - **c(ont(inue))** - resumes the execution of the program
 - **q(uit)/exit** - exits the program (does not work on TPU)
+
+## Docstring Format (Google)
+
+This project utilizes the Google docstring format. It is recommended that this is configured with the autoDocstring VSCode extension.
+
+Examples of the docstring format can be found below:
+- [Basic Docstring Format](https://github.com/NilsJPWerner/autoDocstring/blob/f7bc9f427d5ebcd87e6f5839077a87ecd1cbb404/docs/google.md)
+- [Detailed Docstring Examples](https://gist.github.com/redlotus/3bc387c2591e3e908c9b63b97b11d24e)

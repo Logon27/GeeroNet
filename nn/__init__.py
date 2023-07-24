@@ -13,6 +13,9 @@ from .losses.mean_squared_error import mean_squared_error
 from .losses.categorical_cross_entropy import categorical_cross_entropy
 from .losses.binary_cross_entropy import binary_cross_entropy
 
+# Image processing functionality
+from .data_processing.image_utils import save_image, upscale_image, scale_image, translate_image
+
 # Set logging level based on environment variable. See Readme for level details.
 import logging
 import os
@@ -34,3 +37,9 @@ else:
     if LOG_LEVEL is not None:
         print("Unknown Log Level! Using basic config.")
     logging.basicConfig()
+
+# Add the ability to toggle jit when DISABLE_JIT = 1
+DISABLE_JIT = os.environ.get('DISABLE_JIT')
+if DISABLE_JIT is not None and DISABLE_JIT == "1":
+    print("Disabling JIT.")
+    config.update('jax_disable_jit', True)

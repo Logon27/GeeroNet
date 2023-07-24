@@ -5,7 +5,6 @@ the mini-library jax.example_libraries.optimizers is for first-order stochastic
 optimization.
 """
 import sys
-
 sys.path.append("..")
 
 import time
