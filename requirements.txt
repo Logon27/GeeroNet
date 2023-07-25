@@ -1,7 +1,7 @@
 jax[cpu]
 # Used for image tranformation debug utilities
 numpy
-scipy
+dm-pix
 Pillow
 # Used for visualization
 matplotlib

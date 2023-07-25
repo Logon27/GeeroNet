@@ -1,36 +1,59 @@
 import jax.numpy as jnp
-from jax.image import scale_and_translate
+from jax.image import scale_and_translate, resize
 from jax import random
-# For image rotation
-from scipy.ndimage import rotate
+import math
+# Deep mind library that provides jax compatible image processing functions
+from dm_pix import rotate, resize_with_crop_or_pad
 # For image debugging
 from PIL import Image as im
 import numpy as np
 
-# Need to implement clipped zoom.
+def zoom_grayscale_image(device_array, zoom_factor):
+    """Zoom jax images for experimentation and debugging.
 
-# JIT IN-COMPATIBLE
-def rotate_image(device_array, angle: float):
+    Args:
+        device_array: 2 dimensional jax array.
+        zoom_factor (float): The multiplier used to zoom the image. Can be less than or greater than 1.
+
+    Example:
+        Usage for mnist. Make contents of image 25% smaller::
+
+        image_array = jnp.reshape(train_images[0] * 256, (28,28))
+        image_array = zoom_grayscale_image(image_array, 0.75)
+    
+    Returns:
+        jax_array: The zoomed image as an array.
+    """
+    out = resize(device_array, (round(device_array.shape[0] * zoom_factor), round(device_array.shape[1] * zoom_factor)), 'nearest')
+    # Greyscale to 3 channel image. https://stackoverflow.com/questions/40119743/convert-a-grayscale-image-to-a-3-channel-image
+    stacked_img = jnp.stack((out,)*3, axis=-1)
+    out = resize_with_crop_or_pad(stacked_img, device_array.shape[0], device_array.shape[1])
+    out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
+    return out
+
+def rotate_grayscale_image(device_array, angle: float):
     """Rotate jax images for experimentation and debugging.
 
     Args:
         device_array: 2 dimensional jax array.
-        angle (float): The angle to rotate the image.
+        angle (float): The angle (in degrees) to rotate the image.
 
     Example:
         Usage for mnist. Rotate image 45 degrees::
 
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        image_array = rotate_image(image_array, 45)
+        image_array = rotate_grayscale_image(image_array, 45)
     
     Returns:
         jax_array: The rotated image as an array.
     """
-    device_array = rotate(device_array, angle=angle, reshape=False)
-    return device_array
+    stacked_img = jnp.stack((device_array,)*3, axis=-1)
+    out = rotate(stacked_img, angle=math.radians(angle))
+    out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
+    return out
 
 # Performance and parameters can probably be improved.
-def noisify_image(device_array, rng, num_noise_iterations: int = 5, percentage_noise = 0.5, noise_value_low: int = 50, noise_value_high: int = 255):
+def noisify_grayscale_image(device_array, rng, num_noise_iterations: int = 5, percentage_noise = 0.5, noise_value_low: int = 50, noise_value_high: int = 255):
     """Add random noise to jax images for experimentation and debugging.
 
     For each noise iteration a single noise value is picked. Then that single noise value is applied to the image based on the noise percentage.
@@ -49,7 +72,7 @@ def noisify_image(device_array, rng, num_noise_iterations: int = 5, percentage_n
         Usage for mnist::
 
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        image_array = noisify_image(image_array, rng)
+        image_array = noisify_grayscale_image(image_array, rng)
     
     Returns:
         jax_array: The noisified image as an array.
@@ -64,7 +87,7 @@ def noisify_image(device_array, rng, num_noise_iterations: int = 5, percentage_n
         device_array[random.uniform(noise_rng, device_array.shape) < frac] = random_int
     return device_array
 
-def translate_image(device_array, vertical_shift: float, horizontal_shift: float):
+def translate_grayscale_image(device_array, vertical_shift: float, horizontal_shift: float):
     """Translate jax images for experimentation and debugging.
 
     Args:
@@ -76,7 +99,7 @@ def translate_image(device_array, vertical_shift: float, horizontal_shift: float
         Usage for mnist. Shift right and up::
 
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        image_array = translate_image(image_array, -3, 3)
+        image_array = translate_grayscale_image(image_array, -3, 3)
     
     Returns:
         jax_array: The translated image as an array.
@@ -93,7 +116,7 @@ def translate_image(device_array, vertical_shift: float, horizontal_shift: float
         method='linear'
     )
 
-def scale_image(device_array, scale_factor: float, method='linear'):
+def scale_grayscale_image(device_array, scale_factor: float, method='linear'):
     """Scale jax images (up or down) for experimentation and debugging. This function utilizes interpolation for resizing the image.
     
     Args:
@@ -106,11 +129,11 @@ def scale_image(device_array, scale_factor: float, method='linear'):
 
         # Triple image size
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        image_array = scale_image(image_array, 3)
+        image_array = scale_grayscale_image(image_array, 3)
 
         # Half the image size
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        image_array = scale_image(image_array, 0.5)
+        image_array = scale_grayscale_image(image_array, 0.5)
 
     Returns:
         jax_array: The scaled image as an array.
@@ -131,8 +154,8 @@ def scale_image(device_array, scale_factor: float, method='linear'):
         method=method
     )
 
-# Only used for upscaling images with no interpolation.
-def upscale_image(device_array, scale_factor: int):
+# Only used for upscaling images with no interpolation. This can probably be reimplemented with jax.image.resize
+def upscale_grayscale_image(device_array, scale_factor: int):
     """Used to scale up jax images for experimentation and debugging. This function enlarges the array by repeating existing values. There is no interpolation.
 
     Args:
@@ -144,14 +167,14 @@ def upscale_image(device_array, scale_factor: int):
 
         # Triple the image size
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        scale_image(image_array, 3)
+        upscale_grayscale_image(image_array, 3)
     
     Returns:
         jax_array: The scaled up image as an array.
     """
     return jnp.repeat(jnp.repeat(device_array, scale_factor, axis=0), scale_factor, axis=1)
 
-def save_image(device_array, file_name: str):
+def save_grayscale_image(device_array, file_name: str):
     """A function to save jax arrays to disk as an image for debugging purposes.
     
     Args:
@@ -161,7 +184,7 @@ def save_image(device_array, file_name: str):
         Usage for mnist::
 
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
-        save_image(image_array, "test_image.png")
+        save_grayscale_image(image_array, "test_image.png")
 
     Returns:
         None
