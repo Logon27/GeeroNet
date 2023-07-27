@@ -4,6 +4,9 @@ from .layers.dense import Dense
 # Layer Containers
 from .composers.serial import serial
 
+# Activation Functions
+from .activations.activations import Tanh, Relu, Exp, LogSoftmax, Softmax, Softplus, Sigmoid, Elu, LeakyRelu, Selu, Gelu
+
 # Optimizers
 from .optimizers.sgd import sgd
 from .optimizers.momentum import momentum

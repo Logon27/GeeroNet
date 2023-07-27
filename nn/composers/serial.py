@@ -3,7 +3,7 @@ import jax
 import logging
 import time
 import functools
-from ..print_utils.print_params import *
+from nn.debug_utils import *
 
 
 def time_fun(func):

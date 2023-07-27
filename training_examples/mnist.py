@@ -14,7 +14,6 @@ import numpy.random as npr
 
 import jax.numpy as jnp
 from jax import jit, grad, random
-from jax.example_libraries.stax import Relu, LogSoftmax, Sigmoid
 import datasets as datasets
 import matplotlib.pyplot as plt
 
