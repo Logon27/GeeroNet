@@ -5,7 +5,10 @@ def print_params(params):
     """Helper function to print the parameter shapes of all trainable layers
 
     Args:
-    params: A list of all layer parameters (tuples of arrays). The tuples contain the weight and bias arrays
+        params: A list of all layer parameters (tuples of arrays). The tuples contain the weight and bias arrays
+    
+    Returns:
+        None
     """
     weight_max_len_1 = 1
     weight_max_len_2 = 1

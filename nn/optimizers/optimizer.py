@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Copyright 2023 Logon27
+# Code has been simplified to the main optimizer implementation and commented more thoroughly.
+
 """Examples of how to write optimizers with JAX.
 
 You likely do not mean to import this module! The optimizers in this library
