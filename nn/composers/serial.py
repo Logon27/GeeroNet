@@ -65,7 +65,6 @@ def serial(*layers):
   
   @time_fun
   def apply_fun(params, inputs, **kwargs):
-
     rng = kwargs.pop('rng', None)
     rngs = random.split(rng, num_layers) if rng is not None else (None,) * num_layers
     for fun, param, rng in zip(apply_funs, params, rngs):
