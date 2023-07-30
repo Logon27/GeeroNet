@@ -1,8 +1,8 @@
 # Layers
 from .layers.dense import Dense
 
-# Layer Containers
-from .composers.serial import serial
+# Layer Combinators
+from .combinators.serial import serial
 
 # Activation Functions
 from .activations.activations import Tanh, Relu, Exp, LogSoftmax, Softmax, Softplus, Sigmoid, Elu, LeakyRelu, Selu, Gelu

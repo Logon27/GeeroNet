@@ -17,15 +17,26 @@
 # To see the activation function documentation and implementations please reference the link below.
 # https://jax.readthedocs.io/en/latest/jax.nn.html#activation-functions
 
-from jax.nn import (relu, log_softmax, softmax, softplus, sigmoid, elu,
-                    leaky_relu, selu, gelu)
+from jax.nn import (
+    relu,
+    log_softmax,
+    softmax,
+    softplus,
+    sigmoid,
+    elu,
+    leaky_relu,
+    selu,
+    gelu,
+)
 import jax.numpy as jnp
 
+
 def elementwise(fun, **fun_kwargs):
-  """Layer that applies a scalar function elementwise on its inputs."""
-  init_fun = lambda rng, input_shape: (input_shape, ())
-  apply_fun = lambda params, inputs, **kwargs: fun(inputs, **fun_kwargs)
-  return init_fun, apply_fun
+    """Layer that applies a scalar function elementwise on its inputs."""
+    init_fun = lambda rng, input_shape: (input_shape, ())
+    apply_fun = lambda params, inputs, **kwargs: fun(inputs, **fun_kwargs)
+    return init_fun, apply_fun
+
 
 Tanh = elementwise(jnp.tanh)
 Relu = elementwise(relu)

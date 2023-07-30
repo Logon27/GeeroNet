@@ -10,3 +10,4 @@ planning.txt
 *.pkl
 *.egg-info
 .vscode/
+resnet50.py
