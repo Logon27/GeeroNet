@@ -10,7 +10,7 @@ def sgd(step_size):
         that maps the iteration index to a positive scalar.
 
     Returns:
-      An (init_fun, update_fun, get_params) triple.
+      An (init_fun, update_fun, get_params) triple of functions.
     """
     step_size = make_schedule(step_size)
 

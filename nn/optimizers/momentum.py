@@ -11,7 +11,7 @@ def momentum(step_size: Schedule, mass: float):
       mass: positive scalar representing the momentum coefficient.
 
     Returns:
-      An (init_fun, update_fun, get_params) triple.
+      An (init_fun, update_fun, get_params) triple of functions.
     """
     step_size = make_schedule(step_size)
 
