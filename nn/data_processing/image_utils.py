@@ -34,7 +34,7 @@ def zoom_grayscale_image(device_array: ArrayLike, zoom_factor: float) -> Array:
     out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
     return out
 
-def rotate_grayscale_image(device_array: ArrayLike, angle_degrees: float) -> Array:
+def rotate_grayscale_image(device_array: ArrayLike, angle_degrees) -> Array:
     """Rotate jax images for experimentation and debugging.
 
     Args:
@@ -51,13 +51,14 @@ def rotate_grayscale_image(device_array: ArrayLike, angle_degrees: float) -> Arr
         jax_array: The rotated image as an array.
     """
     stacked_img = jnp.stack((device_array,)*3, axis=-1)
-    out = rotate(stacked_img, angle=math.radians(angle_degrees))
+    # Need to convert the angle in degrees to radians. Because that is what the rotate function accepts.
+    out = rotate(stacked_img, angle=(angle_degrees * (jnp.pi / 180)))
     out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
     return out
 
 # Performance and parameters can probably be improved.
-def noisify_grayscale_image(device_array: ArrayLike, rng: PRNGKey, num_noise_iterations: int = 5,
-                            percentage_noise = 0.5, noise_value_low: int = 50, noise_value_high: int = 255) -> Array:
+def noisify_grayscale_image(rng: PRNGKey, device_array: ArrayLike, num_noise_iterations: int = 5,
+                            percentage_noise: float = 0.5, noise_value_low: float = 0, noise_value_high: float = 255) -> Array:
     """Add random noise to jax images for experimentation and debugging.
 
     For each noise iteration a single noise value is picked. Then that single noise value is applied to the image based on the noise percentage.
@@ -87,8 +88,8 @@ def noisify_grayscale_image(device_array: ArrayLike, rng: PRNGKey, num_noise_ite
     # That way you get a bunch of unique noise values applied a small number of times.
     for _ in range(num_noise_iterations):
         rng, noise_rng = random.split(rng)
-        random_int = random.randint(noise_rng, (1,), noise_value_low, noise_value_high)
-        device_array[random.uniform(noise_rng, device_array.shape) < frac] = random_int
+        random_int = random.uniform(noise_rng, (1,), minval=noise_value_low, maxval=noise_value_high)
+        device_array = jnp.where(random.uniform(noise_rng, device_array.shape) > frac, device_array, random_int)
     return device_array
 
 def translate_grayscale_image(device_array: ArrayLike, vertical_shift: float, horizontal_shift: float) -> Array:
@@ -188,6 +189,7 @@ def save_grayscale_image(device_array: ArrayLike, file_name: str):
     Example:
         Usage for mnist::
 
+        # Times 256 because the image values are normalized.
         image_array = jnp.reshape(train_images[0] * 256, (28,28))
         save_grayscale_image(image_array, "test_image.png")
 
