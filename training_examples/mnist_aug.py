@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     learning_rate = 0.001  # Learning rate???
     num_epochs = 10
-    batch_size = 256 # 128
+    batch_size = 128 # 128
     momentum_mass = 0.9
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
@@ -75,15 +75,14 @@ if __name__ == "__main__":
         subkeys = random.split(rng, batch.shape[0])
         # Calculate random degrees between 0 and 20
         random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-20, maxval=20), in_axes=(0), out_axes=0)(subkeys)
-        # random_angles = jnp.reshape(random_angles, (random_angles.shape[0], 1))
-        # print(random_angles.dtype)
-        # exit()
+        random_vertical_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-3, maxval=3), in_axes=(0), out_axes=0)(subkeys)
+        random_horizontal_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-3, maxval=3), in_axes=(0), out_axes=0)(subkeys)
         batch = jnp.reshape(batch * 256, (batch.shape[0], 28,28))
+        batch = jax.vmap(translate_grayscale_image, in_axes=(0,0,0), out_axes=0)(batch, random_vertical_shifts, random_horizontal_shifts)
         batch = jax.vmap(rotate_grayscale_image, in_axes=(0,0), out_axes=0)(batch, random_angles)
-        # Apply noise to batch
         batch = jax.vmap(noisify_grayscale_image, in_axes=(0,0), out_axes=0)(subkeys, batch)
-        # save_grayscale_image(batch[0], "test_image.png")
-        # exit()
+        save_grayscale_image(batch[0], "test_image.png")
+        exit()
         batch = jnp.reshape(batch, (batch.shape[0], 28*28))
         return batch
 

@@ -1,10 +1,9 @@
 import jax.numpy as jnp
 from jax.image import scale_and_translate, resize
-from jax import random
+from jax import jit, random
 from jax import Array
 from jax.random import PRNGKey
 from jax.typing import ArrayLike
-import math
 # Deep mind library that provides jax compatible image processing functions
 from dm_pix import rotate, resize_with_crop_or_pad
 # For image debugging
@@ -34,7 +33,8 @@ def zoom_grayscale_image(device_array: ArrayLike, zoom_factor: float) -> Array:
     out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
     return out
 
-def rotate_grayscale_image(device_array: ArrayLike, angle_degrees) -> Array:
+@jit
+def rotate_grayscale_image(device_array: ArrayLike, angle_degrees: float) -> Array:
     """Rotate jax images for experimentation and debugging.
 
     Args:
@@ -57,6 +57,7 @@ def rotate_grayscale_image(device_array: ArrayLike, angle_degrees) -> Array:
     return out
 
 # Performance and parameters can probably be improved.
+@jit
 def noisify_grayscale_image(rng: PRNGKey, device_array: ArrayLike, num_noise_iterations: int = 5,
                             percentage_noise: float = 0.5, noise_value_low: float = 0, noise_value_high: float = 255) -> Array:
     """Add random noise to jax images for experimentation and debugging.
@@ -92,6 +93,7 @@ def noisify_grayscale_image(rng: PRNGKey, device_array: ArrayLike, num_noise_ite
         device_array = jnp.where(random.uniform(noise_rng, device_array.shape) > frac, device_array, random_int)
     return device_array
 
+@jit
 def translate_grayscale_image(device_array: ArrayLike, vertical_shift: float, horizontal_shift: float) -> Array:
     """Translate jax images for experimentation and debugging.
 
