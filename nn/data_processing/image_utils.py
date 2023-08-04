@@ -33,7 +33,6 @@ def zoom_grayscale_image(device_array: ArrayLike, zoom_factor: float) -> Array:
     out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
     return out
 
-@jit
 def rotate_grayscale_image(device_array: ArrayLike, angle_degrees: float) -> Array:
     """Rotate jax images for experimentation and debugging.
 
@@ -56,8 +55,6 @@ def rotate_grayscale_image(device_array: ArrayLike, angle_degrees: float) -> Arr
     out = jnp.reshape(out[:,:,:1], (device_array.shape[0],device_array.shape[1]))
     return out
 
-# Performance and parameters can probably be improved.
-@jit
 def noisify_grayscale_image(rng: PRNGKey, device_array: ArrayLike, num_noise_iterations: int = 5,
                             percentage_noise: float = 0.5, noise_value_low: float = 0, noise_value_high: float = 255) -> Array:
     """Add random noise to jax images for experimentation and debugging.
@@ -93,7 +90,6 @@ def noisify_grayscale_image(rng: PRNGKey, device_array: ArrayLike, num_noise_ite
         device_array = jnp.where(random.uniform(noise_rng, device_array.shape) > frac, device_array, random_int)
     return device_array
 
-@jit
 def translate_grayscale_image(device_array: ArrayLike, vertical_shift: float, horizontal_shift: float) -> Array:
     """Translate jax images for experimentation and debugging.
 

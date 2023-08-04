@@ -4,6 +4,7 @@ The mini-library jax.example_libraries.stax is for neural network building, and
 the mini-library jax.example_libraries.optimizers is for first-order stochastic
 optimization.
 """
+from functools import partial
 import sys
 sys.path.append("..")
 
@@ -48,15 +49,6 @@ net_init, net_predict = serial(
     LogSoftmax
 )
 
-# net_init, net_predict = serial(
-#     Dense(70),
-#     Sigmoid,
-#     Dense(35),
-#     Sigmoid,
-#     Dense(10),
-#     LogSoftmax
-# )
-
 if __name__ == "__main__":
     rng = random.PRNGKey(85)
 
@@ -73,28 +65,38 @@ if __name__ == "__main__":
     def augment(rng, batch):
         # Generate the same number of keys as the array size. In this case, 5.
         subkeys = random.split(rng, batch.shape[0])
-        # Calculate random degrees between 0 and 20
+        # Calculate random degrees between -20 and 20
         random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-20, maxval=20), in_axes=(0), out_axes=0)(subkeys)
         random_vertical_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-3, maxval=3), in_axes=(0), out_axes=0)(subkeys)
         random_horizontal_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-3, maxval=3), in_axes=(0), out_axes=0)(subkeys)
+
+        # Each batch uses the same fixed zoom value. This is a limitation due to vmap not allowing dynamically shaped arrays.
+        random_zoom = jax.random.uniform(subkeys[0], minval=0.75, maxval=1.45)
+        # random_zoom = float(random_zoom) # if you want to jit the zoom function
+        zoom_grayscale_image_fixed = partial(zoom_grayscale_image, zoom_factor=random_zoom)
+
         batch = jnp.reshape(batch * 256, (batch.shape[0], 28,28))
-        batch = jax.vmap(translate_grayscale_image, in_axes=(0,0,0), out_axes=0)(batch, random_vertical_shifts, random_horizontal_shifts)
-        batch = jax.vmap(rotate_grayscale_image, in_axes=(0,0), out_axes=0)(batch, random_angles)
-        batch = jax.vmap(noisify_grayscale_image, in_axes=(0,0), out_axes=0)(subkeys, batch)
-        save_grayscale_image(batch[0], "test_image.png")
-        exit()
+        # batch = jax.vmap(jit(zoom_grayscale_image_fixed), in_axes=(0), out_axes=0)(batch) # if you want to jit the zoom function
+        batch = jax.vmap(zoom_grayscale_image_fixed, in_axes=(0), out_axes=0)(batch)
+        batch = jax.vmap(jit(translate_grayscale_image), in_axes=(0,0,0), out_axes=0)(batch, random_vertical_shifts, random_horizontal_shifts)
+        batch = jax.vmap(jit(rotate_grayscale_image), in_axes=(0,0), out_axes=0)(batch, random_angles)
+        batch = jax.vmap(jit(noisify_grayscale_image), in_axes=(0,0), out_axes=0)(subkeys, batch)
         batch = jnp.reshape(batch, (batch.shape[0], 28*28))
         return batch
 
     def data_stream():
+        # Need to modify this np_rng to be jax PRNG
         np_rng = npr.RandomState(0)
+        key = jax.random.PRNGKey(0)
         while True:
             perm = np_rng.permutation(num_train)
             for i in range(num_batches):
                 # batch_idx is a list of indices.
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
-                train_images_aug = augment(rng, train_images[batch_idx])
+                # Augment the training data using key.
+                key, subkey = jax.random.split(key)
+                train_images_aug = augment(subkey, train_images[batch_idx])
                 yield train_images_aug, train_labels[batch_idx]
 
     batches = data_stream()
