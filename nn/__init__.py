@@ -1,5 +1,7 @@
 # Layers
 from .layers.dense import Dense
+from .layers.convolution import Conv
+from .layers.flatten import Flatten
 
 # Layer Combinators
 from .combinators.serial import serial

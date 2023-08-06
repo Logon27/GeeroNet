@@ -31,7 +31,7 @@ def debug_decorator(serial_debug):
                 jax.debug.breakpoint()
 
                 # Print parameters in a much cleaner way.
-                print_params(params)
+                # print_params(params)
                 jax.debug.breakpoint()
 
                 return output_shape, params

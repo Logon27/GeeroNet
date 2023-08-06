@@ -101,3 +101,9 @@ Examples of the docstring format can be found below:
 - [Basic Docstring Format](https://github.com/NilsJPWerner/autoDocstring/blob/f7bc9f427d5ebcd87e6f5839077a87ecd1cbb404/docs/google.md)
 - [Detailed Docstring Examples](https://gist.github.com/redlotus/3bc387c2591e3e908c9b63b97b11d24e)
 - [Google Style Guide](https://google.github.io/styleguide/pyguide.html)
+
+## Jax Utilization Within Geero
+
+### Initializers
+
+Currently all initializers used within GeeroNet are from the [initializers](https://jax.readthedocs.io/en/latest/jax.nn.initializers.html) implementation in Jax. I may port them over at some point for visibility. But for now you can reference and use the Jax documentation for initializers.

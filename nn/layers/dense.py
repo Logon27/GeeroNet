@@ -10,11 +10,11 @@ from nn.decorators.dense_decorator import debug_decorator
 
 
 @debug_decorator
-def Dense(output_shape: int, weight_init=glorot_normal(), bias_init=normal()) -> Tuple[InitFun, ApplyFun]:
+def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tuple[InitFun, ApplyFun]:
     """Layer constructor function for a dense (fully-connected) layer.
     
     Args:
-        output_shape: The 1 dimensional output shape.
+        out_dim: The 1 dimensional output shape.
         weight_init: A function used to initialize the weights
         bias_init: A function used to initialize the biases
 
@@ -33,7 +33,9 @@ def Dense(output_shape: int, weight_init=glorot_normal(), bias_init=normal()) ->
             And (weights, bias) is a tuple of the initialized weight and bias arrays.
         """
         k1, k2 = random.split(rng)
-        weights, bias = weight_init(k1, (input_shape, output_shape)), bias_init(k2, (1, output_shape))
+        # Need to investigate why the output shape needs this format.
+        output_shape = input_shape[:-1] + (out_dim,)
+        weights, bias = weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim))
         return output_shape, (weights, bias)
 
     # kwargs is necessary due to rng being passed to some apply functions.
