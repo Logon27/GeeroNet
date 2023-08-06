@@ -5,3 +5,5 @@ dm-pix
 Pillow
 # Used for visualization
 matplotlib
+# Used for saving weights to a file
+dill==0.3.7

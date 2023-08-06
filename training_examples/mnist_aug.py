@@ -1,9 +1,6 @@
-"""A basic MNIST example using JAX with the mini-libraries stax and optimizers.
+"""A basic MNIST example using JAX with data augmentation
 
-The mini-library jax.example_libraries.stax is for neural network building, and
-the mini-library jax.example_libraries.optimizers is for first-order stochastic
-optimization.
-"""
+Performance is worse due to the data augementation."""
 from functools import partial
 import sys
 sys.path.append("..")
@@ -52,9 +49,9 @@ net_init, net_predict = serial(
 if __name__ == "__main__":
     rng = random.PRNGKey(85)
 
-    learning_rate = 0.001  # Learning rate???
+    step_size = 0.001
     num_epochs = 10
-    batch_size = 128 # 128
+    batch_size = 128
     momentum_mass = 0.9
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
@@ -101,7 +98,7 @@ if __name__ == "__main__":
 
     batches = data_stream()
 
-    opt_init, opt_update, get_params = momentum(learning_rate, mass=momentum_mass)
+    opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
     # opt_init, opt_update, get_params = sgd(step_size)
 
     @jit

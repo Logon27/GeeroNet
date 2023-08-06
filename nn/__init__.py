@@ -20,6 +20,9 @@ from .losses.binary_cross_entropy import binary_cross_entropy
 from .data_processing.image_utils import save_grayscale_image, upscale_grayscale_image, scale_grayscale_image, translate_grayscale_image, \
     noisify_grayscale_image, rotate_grayscale_image, zoom_grayscale_image
 
+# Saving and loading weights from file
+from .data_processing.file_io import save_params, load_params
+
 # Set logging level based on environment variable. See Readme for level details.
 import logging
 import os
