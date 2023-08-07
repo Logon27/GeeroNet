@@ -36,7 +36,7 @@ def accuracy(params, batch):
 net_init, net_predict = serial(
     Conv(3, (3, 3), padding='SAME'), Relu,
     Conv(3, (3, 3), padding='SAME'), Relu,
-    Flatten,
+    Flatten(),
     Dense(256), Relu,
     Dense(10), LogSoftmax,
 )
