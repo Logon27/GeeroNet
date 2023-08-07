@@ -2,7 +2,6 @@ from typing import List
 from jax.typing import ArrayLike
 from jax.random import PRNGKey
 from nn.typing import Params
-from nn.debug_utils import *
 import logging
 import time
 import jax
@@ -28,10 +27,6 @@ def debug_decorator(serial_debug):
                 time_elapsed_ms = (end_time_forward - start_time_forward)
                 jax.debug.print("Serial Initialization Took: {:.2f} seconds", time_elapsed_ms)
                 jax.debug.print("=== End Init Fun Execution ===\n")
-                jax.debug.breakpoint()
-
-                # Print parameters in a much cleaner way.
-                # print_params(params)
                 jax.debug.breakpoint()
 
                 return output_shape, params

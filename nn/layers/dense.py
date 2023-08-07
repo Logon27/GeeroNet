@@ -32,8 +32,16 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
             An ``output_shape, (weights, bias)`` tuple. Where output_shape is the calculated output shape of the layer.
             And (weights, bias) is a tuple of the initialized weight and bias arrays.
         """
+        # The shape of the weight and bias arrays of the Dense layer are in no way dependent on the batch size.
+        # However, convolutional layers appear to be dependent on batch size so I am strictly enforcing this format.
+        # So you might not have any issues with using a model with only Dense layers, but if you mixed Dense and Conv layers you would have a problem.
+        if isinstance(input_shape, int) or len(input_shape) <= 1:
+            raise ValueError(
+                "Input shape must be a tuple of length 2. Where input_shape = (batch_size, input_size)."
+            )
+        
         k1, k2 = random.split(rng)
-        # Need to investigate why the output shape needs this format.
+        # Need to investigate why the output_shape needs to be this format.
         output_shape = input_shape[:-1] + (out_dim,)
         weights, bias = weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim))
         return output_shape, (weights, bias)
@@ -50,7 +58,7 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
         """
         if inputs.ndim <= 1:
             raise ValueError(
-                "Input must be at least 2 dimensional. This helps eliminate any confusion with mixing vector and matrix multiplication."
+                "Input must be 2 dimensional. Where inputs.shape = (batch_size, input_size). This helps eliminate any confusion with mixing vector and matrix multiplication."
             )
 
         weights, bias = params

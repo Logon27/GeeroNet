@@ -106,7 +106,7 @@ if __name__ == "__main__":
         params = get_params(opt_state)
         return opt_update(i, grad(loss)(params, batch), opt_state)
 
-    _, init_params = net_init(rng, 28 * 28)
+    _, init_params = net_init(rng, (batch_size, 28 * 28))
     opt_state = opt_init(init_params)
     itercount = itertools.count()
 
