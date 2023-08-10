@@ -17,9 +17,9 @@ def debug_decorator(flatten_debug):
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape: ArrayLike):
                 output_shape, () = init_fun_debug(rng, input_shape)
-                jax.debug.print("Flatten(Input Shape: {}, Output Shape: {})",
-                    input_shape, output_shape
-                )
+                debug_msg = "Flatten(Input Shape: {}, Output Shape: {})".format(input_shape, output_shape)
+                debug_msg = debug_msg.replace("-1", "*")
+                jax.debug.print(debug_msg)
                 return output_shape, ()
             
             @functools.wraps(apply_fun_debug)

@@ -42,6 +42,8 @@ if LOG_LEVEL is not None and LOG_LEVEL in valid_debug_modes:
         logging.info("Disabling JIT for better debugging.")
         logging.info("Expect first iteration time estimates to be longer.")
         config.update('jax_disable_jit', True)
+        logging.info("The '*' character in debug prints is a wildcard representing the batch size.")
+        logging.info("The wildcard was added because the batch size can vary between forward passes after initialization.")
 else:
     if LOG_LEVEL is not None:
         print("Unknown Log Level! Using basic config.")

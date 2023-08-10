@@ -1,3 +1,4 @@
+from typing import Tuple
 from jax.typing import ArrayLike
 from jax.random import PRNGKey
 from nn.typing import Params
@@ -15,11 +16,11 @@ def debug_decorator(dense_debug):
             init_fun_debug, apply_fun_debug = dense_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)
-            def init_fun(rng: PRNGKey, input_shape: ArrayLike):
+            def init_fun(rng: PRNGKey, input_shape: Tuple):
                 output_shape, (weights, bias) = init_fun_debug(rng, input_shape)
-                jax.debug.print("Dense(Input Shape: {}, Output Shape: {}) => Weight Shape: {}, Bias Shape: {}",
-                    input_shape, output_shape, weights.shape, bias.shape
-                )
+                debug_msg = "Dense(Input Shape: {}, Output Shape: {} => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
+                debug_msg = debug_msg.replace("-1", "*")
+                jax.debug.print(debug_msg)
                 return output_shape, (weights, bias)
             
             @functools.wraps(apply_fun_debug)

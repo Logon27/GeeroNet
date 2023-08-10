@@ -22,7 +22,7 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
         ``(init_fun, update_fun)``: Tuple of functions.
     """
 
-    def init_fun(rng: PRNGKey, input_shape) -> Tuple[int, Params]:
+    def init_fun(rng: PRNGKey, input_shape: Tuple) -> Tuple[int, Params]:
         """
         Args:
             rng: A PRNGKey used to initialize random values. 
@@ -35,14 +35,15 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
         # The shape of the weight and bias arrays of the Dense layer are in no way dependent on the batch size.
         # However, convolutional layers appear to be dependent on batch size so I am strictly enforcing this format.
         # So you might not have any issues with using a model with only Dense layers, but if you mixed Dense and Conv layers you would have a problem.
-        if isinstance(input_shape, int) or len(input_shape) <= 1:
-            raise ValueError(
-                "Input shape must be a tuple of length 2. Where input_shape = (batch_size, input_size)."
-            )
+        if not isinstance(input_shape, tuple) or len(input_shape) > 2:
+            msg = ("input_shape must be a tuple of length 1 or 2. Examples:.\n"
+                "    input_shape = (input_size,)\n"
+                "    input_shape = (-1, input_size)\n"
+                "    -1 means a wildcard for the batch size.\n")
+            raise ValueError(msg)
         
         k1, k2 = random.split(rng)
-        # Need to investigate why the output_shape needs to be this format.
-        output_shape = input_shape[:-1] + (out_dim,)
+        output_shape = -1, out_dim
         weights, bias = weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim))
         return output_shape, (weights, bias)
 

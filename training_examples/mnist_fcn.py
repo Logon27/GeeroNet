@@ -34,11 +34,9 @@ def accuracy(params, batch):
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = serial(
-    Conv(3, (3, 3), padding='SAME'), Relu,
-    Conv(3, (3, 3), padding='SAME'), Relu,
-    Flatten(),
-    Dense(256), Relu,
-    Dense(10), LogSoftmax,
+    Conv(3, (5, 5), padding='SAME'), Relu,
+    Conv(10, (24, 24), padding='SAME'), Relu,
+    Flatten(), LogSoftmax,
 )
 
 if __name__ == "__main__":
@@ -80,7 +78,7 @@ if __name__ == "__main__":
         params = get_params(opt_state)
         return opt_update(i, grad(loss)(params, batch), opt_state)
 
-    _, init_params = net_init(rng, (-1, 28, 28, 1))
+    _, init_params = net_init(rng, (-1, -1, -1, 1))
     opt_state = opt_init(init_params)
     itercount = itertools.count()
 

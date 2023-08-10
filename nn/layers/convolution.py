@@ -16,28 +16,40 @@ from nn.decorators.convolution_decorator import convolution_decorator
 # The last string "NHWC" indicates that the outputs of the convolution are batch, height, width, channel.
 
 # N "images" of C channels of H x W feature maps
+
+# Filters are always one dimension more than the kernels.
+# For example, in 2D convolutions, filters are 3D matrices (which is essentially a
+# concatenation of 2D matrices i.e. the kernels). So for a CNN layer with kernel dimensions
+# h*w and input channels k, the filter dimensions are k*h*w.
+
+# https://jax.readthedocs.io/en/latest/notebooks/convolutions.html
+
+# The init_fun is not dependent on the batch size, input height, or input width. Only the number of input channels.
 @convolution_decorator
-def GeneralConv(dimension_numbers, out_chan, filter_shape, strides=None, padding='VALID', W_init=None, b_init=normal(1e-6)):
+def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padding='VALID', weight_init=None, bias_init=normal(1e-6)):
   """Layer construction function for a general convolution layer."""
   lhs_spec, rhs_spec, out_spec = dimension_numbers
-  one = (1,) * len(filter_shape)
+  one = (1,) * len(kernel_shape)
   strides = strides or one
-  W_init = W_init or glorot_normal(rhs_spec.index('I'), rhs_spec.index('O'))
+  weight_init = weight_init or glorot_normal(rhs_spec.index('I'), rhs_spec.index('O'))
 
   def init_fun(rng, input_shape):
     # Investigate if the kernels shapes are based on the batch sizing.
-    filter_shape_iter = iter(filter_shape)
-    kernel_shape = [out_chan if c == 'O' else
+    kernel_shape_iter = iter(kernel_shape)
+    filter_shape = [num_filters if c == 'O' else
                     input_shape[lhs_spec.index('C')] if c == 'I' else
-                    next(filter_shape_iter) for c in rhs_spec]
-    output_shape = lax.conv_general_shape_tuple(input_shape, kernel_shape, strides, padding, dimension_numbers)
-    bias_shape = [out_chan if c == 'C' else 1 for c in out_spec]
+                    next(kernel_shape_iter) for c in rhs_spec]
+    output_shape = lax.conv_general_shape_tuple(input_shape, filter_shape, strides, padding, dimension_numbers)
+    bias_shape = [num_filters if c == 'C' else 1 for c in out_spec]
     k1, k2 = random.split(rng)
-    weights, bias = W_init(k1, kernel_shape), b_init(k2, bias_shape)
+    weights, bias = weight_init(k1, filter_shape), bias_init(k2, bias_shape)
     return output_shape, (weights, bias)
   
   def apply_fun(params, inputs, **kwargs):
     weights, bias = params
     return lax.conv_general_dilated(inputs, weights, strides, padding, one, one, dimension_numbers=dimension_numbers) + bias
+  
   return init_fun, apply_fun
+
+# input_shape = (-1, input_height, input_width, input_channels)
 Conv = functools.partial(GeneralConv, ('NHWC', 'HWIO', 'NHWC'))

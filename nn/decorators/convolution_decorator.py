@@ -17,9 +17,9 @@ def convolution_decorator(convolution_debug):
             @functools.wraps(init_fun_debug)
             def init_fun(rng, input_shape):
                 output_shape, (weights, bias) = init_fun_debug(rng, input_shape)
-                jax.debug.print("Conv(Input Shape: {}, Output Shape: {}) => Weight Shape: {}, Bias Shape: {}",
-                    input_shape, output_shape, weights.shape, bias.shape
-                )
+                debug_msg = "Conv(Input Shape: {}, Output Shape: {}) => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
+                debug_msg = debug_msg.replace("-1", "*")
+                jax.debug.print(debug_msg)
                 return output_shape, (weights, bias)
             
             @functools.wraps(apply_fun_debug)
