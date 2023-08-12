@@ -1,4 +1,4 @@
-"""A basic MNIST example using JAX with data augmentation
+"""A basic MNIST example with data augmentation
 
 Performance is worse due to the data augementation."""
 from functools import partial

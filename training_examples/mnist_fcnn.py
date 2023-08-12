@@ -1,4 +1,7 @@
-"""A basic MNIST example using JAX"""
+"""A Fully Convolutional Neural Network (FCNN) example for MNIST
+
+The accuracy is only around 80%, but it gives you an idea of how the model architecture would be laid out.
+It takes a little over a minute per epoch on a modern processor."""
 import sys
 sys.path.append("..")
 
@@ -34,16 +37,19 @@ def accuracy(params, batch):
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = serial(
-    Conv(3, (5, 5), padding='SAME'), Relu,
-    Conv(10, (24, 24), padding='SAME'), Relu,
+    Conv(16, (5, 5), padding='SAME'), Relu,
+    Conv(8, (3, 3), padding='SAME'), Relu,
+    Conv(10, (22, 22), padding='SAME'),
     Flatten(), LogSoftmax,
 )
 
+# https://machinelearningmastery.com/introduction-to-1x1-convolutions-to-reduce-the-complexity-of-convolutional-neural-networks/
+# Need to look into 1x1 convolutions.
 if __name__ == "__main__":
     rng = random.PRNGKey(0)
 
-    step_size = 0.001
-    num_epochs = 10
+    step_size = 0.005
+    num_epochs = 5
     batch_size = 128
     momentum_mass = 0.9
     # IMPORTANT
@@ -78,10 +84,11 @@ if __name__ == "__main__":
         params = get_params(opt_state)
         return opt_update(i, grad(loss)(params, batch), opt_state)
 
-    _, init_params = net_init(rng, (-1, -1, -1, 1))
+    _, init_params = net_init(rng, (-1, 28, 28, 1))
     opt_state = opt_init(init_params)
     itercount = itertools.count()
 
+    # Maybe I can batch the accuracy calculations.
     print("\nStarting training...")
     training_start_time = time.time()
     for epoch in range(num_epochs):
@@ -93,6 +100,13 @@ if __name__ == "__main__":
         params = get_params(opt_state)
         train_acc = accuracy(params, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
         test_acc = accuracy(params, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
+        # train_acc = 0
+        # test_acc = 0
+        # for _ in range(num_batches):
+        #     train_acc += accuracy(params, next(batches))
+        #     test_acc += accuracy(params, next(batches))
+        # train_acc /= num_batches
+        # test_acc /= num_batches
         print(
             "{:>{}}/{}, Accuracy Train = {:.2%}, Accuracy Test = {:.2%}, in {:.2f} seconds".format(
                 (epoch + 1), len(str(num_epochs)), num_epochs, train_acc, test_acc, epoch_time

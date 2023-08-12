@@ -2,6 +2,8 @@
 from .layers.dense import Dense
 from .layers.convolution import Conv
 from .layers.flatten import Flatten
+from .layers.reshape import Reshape
+from .layers.dropout import Dropout
 
 # Layer Combinators
 from .combinators.serial import serial

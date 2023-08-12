@@ -1,4 +1,4 @@
-"""A basic MNIST example using JAX"""
+"""A Convolutional Neural Network (FCNN) example for MNIST"""
 import sys
 sys.path.append("..")
 
