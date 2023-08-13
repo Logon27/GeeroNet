@@ -78,21 +78,24 @@ Currently all initializers used within GeeroNet are from the [initializers](http
 The -1 for the input_shape tuple is a wildcard for the batch size. The wildcard was added because the batch size can vary between forward passes after initialization. And the actual initialization of the layers is in no way dependent on the actual batch size.
 
 #### Dense
-`input_shape = (input_size,)`  
-or...  
-`input_shape = (-1, input_size)`  
-or if you have a fixed batch size (such as 128)...  
-`input_shape = (128, input_size)`
+
+```python
+input_shape = (input_size,)
+# or...
+input_shape = (-1, input_size)
+# or if you have a fixed batch size (such as 128)... 
+input_shape = (128, input_size)
+```
 
 These variations only really affect the output of some of the debug shape print statements. The more information you give Geero, the more accurate shapes it will display in the debug statements.
 
 #### Conv
 The initialization (init_fun) of the Conv layer is not dependent on the batch size. It can also be independent of the input_height and input_width, but only if you have a purely convolutional network. This is because if you have Dense layers mixed in, the Dense layers need to know the flattened output shape of the Conv layer. This is because unlike Conv, the Dense layer IS dependent on the input size.  
 
-`input_shape = (-1, input_height, input_width, input_channels)`  
+```python
+input_shape = (-1, input_height, input_width, input_channels)
 
-ONLY if your network is fully convolutional can you do...  
-
-`input_shape = (-1, -1, -1, input_channels)`  
-
-Although this is not recommended if you DO have a fixed input size. Because the debugging information will be less useful.
+# ONLY if your network is fully convolutional can you do... 
+input_shape = (-1, -1, -1, input_channels)
+# Although this is not recommended if you DO have a fixed input size. Because the debugging information will be less useful.
+```
