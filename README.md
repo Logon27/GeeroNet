@@ -97,5 +97,6 @@ input_shape = (-1, input_height, input_width, input_channels)
 
 # ONLY if your network is fully convolutional can you do... 
 input_shape = (-1, -1, -1, input_channels)
-# Although this is not recommended if you DO have a fixed input size. Because the debugging information will be less useful.
+# Although this is not recommended if you DO have a fixed input size.
+# Because the debugging information will be less useful.
 ```
