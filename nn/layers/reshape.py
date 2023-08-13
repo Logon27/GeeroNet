@@ -1,7 +1,9 @@
 import jax.numpy as jnp
+from nn.decorators.reshape_decorator import debug_decorator
 
 
 # https://github.com/google/jax/issues/1796
+@debug_decorator
 def Reshape(new_shape):
   """Layer construction function for a reshape layer."""
   init_fun = lambda rng, input_shape: (new_shape, ())

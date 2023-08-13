@@ -22,7 +22,7 @@ python -m venv venvGeeroNet
 source venvGeeroNet/bin/activate
 ```
 
-Sometimes VSCode will automatically activate the venv sometimes it does not. You can use one of the above commands to activate the venv. Or sometimes just closing and reopening your terminal will cause it to properly source your venv.
+Sometimes VSCode will automatically activate the venv, sometimes it does not. You can use one of the above commands to activate the venv. Or sometimes just closing and reopening your terminal will cause it to properly source your venv.
 
 #### Troubleshooting venv activation
 
