@@ -18,8 +18,13 @@ def debug_decorator(dense_debug):
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape: Tuple):
                 output_shape, (weights, bias) = init_fun_debug(rng, input_shape)
-                debug_msg = "Dense(Input Shape: {}, Output Shape: {} => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
-                debug_msg = debug_msg.replace("-1", "*")
+                if len(input_shape) == 1:
+                    # Edge case for if the first input shape is of length 1. For example: (28 * 28,)
+                    debug_msg = "Dense(Input Shape: {}, Output Shape: {} => Weight Shape: {}, Bias Shape: {}".format((-1, input_shape[0]), output_shape, weights.shape, bias.shape)
+                    debug_msg = debug_msg.replace("-1", "*")
+                else:
+                    debug_msg = "Dense(Input Shape: {}, Output Shape: {} => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
+                    debug_msg = debug_msg.replace("-1", "*")
                 jax.debug.print(debug_msg)
                 return output_shape, (weights, bias)
             

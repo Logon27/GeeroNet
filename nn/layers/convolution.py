@@ -24,7 +24,6 @@ from nn.decorators.convolution_decorator import convolution_decorator
 
 # https://jax.readthedocs.io/en/latest/notebooks/convolutions.html
 
-# The init_fun is not dependent on the batch size, input height, or input width. Only the number of input channels.
 @convolution_decorator
 def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padding='VALID', weight_init=None, bias_init=normal(1e-6)):
   """Layer construction function for a general convolution layer."""
@@ -33,8 +32,10 @@ def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padd
   strides = strides or one
   weight_init = weight_init or glorot_normal(rhs_spec.index('I'), rhs_spec.index('O'))
 
+  # The init_fun is not dependent on the batch size, input height, or input width. Only the number of input channels.
+  # However, when mixing layers like Dense -> Reshape -> Conv. Then the input height and width must be known.
+  # Because the Reshape operation cannot have a wildcard in 3 dimensions, only 1.
   def init_fun(rng, input_shape):
-    # Investigate if the kernels shapes are based on the batch sizing.
     kernel_shape_iter = iter(kernel_shape)
     filter_shape = [num_filters if c == 'O' else
                     input_shape[lhs_spec.index('C')] if c == 'I' else

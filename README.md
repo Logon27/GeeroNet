@@ -13,6 +13,7 @@ python -m venv venvGeeroNet
 ```
 
 #### Activate your virtual environment
+
 ```bash
 # Linux (WSL2)
 . venvGeeroNet/bin/activate
@@ -21,9 +22,11 @@ python -m venv venvGeeroNet
 source venvGeeroNet/bin/activate
 ```
 
+Sometimes VSCode will automatically activate the venv sometimes it does not. You can use one of the above commands to activate the venv. Or sometimes just closing and reopening your terminal will cause it to properly source your venv.
+
 #### Troubleshooting venv activation
 
-If you are having trouble getting the venv to activate when it has worked properly in the past...
+If you are having trouble getting the venv to activate (at all) when it has worked properly in the past...
 ```
 CTRL + SHIFT + P -> Search 'Reload' -> Click 'Python: Clear Cache and Reload Window'
 ```
@@ -43,55 +46,15 @@ If using WSL2 on Windows. Please install python3-tk. This will give you a backen
 sudo apt-get install python3-tk
 ```
 
+### GPU Setup
+
+By default the requirements.txt file will install jax for cpu. However, to take advantage of the gpu you must install both cuda and jax dependencies. The easiest way to install these dependencies is through pip. Instructions can be found in the [README](https://github.com/google/jax#pip-installation-gpu-cuda-installed-via-pip-easier) of the [jax repo](https://github.com/google/jax). Once these dependencies are installed, the gpu should automatically be used when using any Jax or Geero functionality.
+
 ---
 
-## Geero Configuration
+## Environment Variables And Logging Levels
 
-### Selecting LOGLEVEL
-
-| Logging Level | Value         | Notes |
-| ------------- | ------------- | ----- |
-| CRITICAL      | 50            |       |
-| ERROR         | 40            |       |
-| WARNING       | 30            |       |
-| INFO          | 20            |       |
-| INFO2         | 19            | Enhanced logging for forward pass |
-| DEBUG         | 10            |       |
-| NOTSET        | 0             |       |
-
-```bash
-export LOGLEVEL=INFO
-
-# To unset environment variable
-unset LOGLEVEL
-
-# Or...
-LOGLEVEL=INFO python mnist.py
-```
-
-### Environment Variables
-
-This is a list of environment variables that control the behavior of Geero at runtime.
-
-Example: `DISABLE_JIT=1 python mnist.py`
-
-| Variable    | Possible Values | Notes |
-| ----------- | --------------- | ----- |
-| DISABLE_JIT | [1]             | Disable JIT for debugging purposes |
-
-### Breakpoint Debugging (INFO2)
-
-For some logging levels, breakpoints are set within the code. This is to aid in debugging and make the logs readable. Using a breakpoint in jax will automatically open a jdb type prompt. Here is a list of helpful commands for interacting with the prompt. For additional information, see [this jax page](https://jax.readthedocs.io/en/latest/debugging/print_breakpoint.html#interactive-inspection-with-jax-debug-breakpoint).
-
-- **help** - prints out available commands
-- **p** - evaluates an expression and prints its result
-- **pp** - evaluates an expression and pretty-prints its result
-- **u(p)** - go up a stack frame
-- **d(own)** - go down a stack frame
-- **w(here)/bt** - print out a backtrace
-- **l(ist)** - print out code context
-- **c(ont(inue))** - resumes the execution of the program
-- **q(uit)/exit** - exits the program (does not work on TPU)
+For a list of available environment variables and logging levels, please see [env_vars](env_vars.md).
 
 ## Docstring Format (Google)
 
@@ -117,7 +80,11 @@ The -1 for the input_shape tuple is a wildcard for the batch size. The wildcard 
 #### Dense
 `input_shape = (input_size,)`  
 or...  
-`input_shape = (-1, input_size)`
+`input_shape = (-1, input_size)`  
+or if you have a fixed batch size (such as 128)...  
+`input_shape = (128, input_size)`
+
+These variations only really affect the output of some of the debug shape print statements. The more information you give Geero, the more accurate shapes it will display in the debug statements.
 
 #### Conv
 The initialization (init_fun) of the Conv layer is not dependent on the batch size. It can also be independent of the input_height and input_width, but only if you have a purely convolutional network. This is because if you have Dense layers mixed in, the Dense layers need to know the flattened output shape of the Conv layer. This is because unlike Conv, the Dense layer IS dependent on the input size.  

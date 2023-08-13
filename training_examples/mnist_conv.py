@@ -34,10 +34,11 @@ def accuracy(params, batch):
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = serial(
-    Conv(3, (3, 3), padding='SAME'), Relu,
-    Conv(3, (3, 3), padding='SAME'), Relu,
+    Conv(6, (5, 5), padding='SAME'), Relu,
+    Conv(16, (3, 3), padding='SAME'), Relu,
     Flatten(),
-    Dense(256), Relu,
+    Dense(120), Relu,
+    Dense(84), Relu,
     Dense(10), LogSoftmax,
 )
 

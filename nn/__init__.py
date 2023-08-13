@@ -31,10 +31,18 @@ from .data_processing.file_io import save_params, load_params
 import logging
 import os
 from jax.config import config
+import jax
+
+def getenv(key, default=0):
+    # Gets the environment variable or the default value if the env var is not set.
+    # Then casts the value to the type of 'default'
+    return type(default)(os.getenv(key, default))
+
+LOG_LEVEL = getenv('LOGLEVEL', 'WARNING')
+DISABLE_JIT = getenv('DISABLE_JIT', 0)
 
 valid_debug_modes = {'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'INFO2', 'DEBUG', 'NOTSET'}
-LOG_LEVEL = os.environ.get('LOGLEVEL')
-if LOG_LEVEL is not None and LOG_LEVEL in valid_debug_modes:
+if LOG_LEVEL in valid_debug_modes:
     logging.addLevelName(19, "INFO2")
     logging.basicConfig(
         format='%(levelname)s: %(message)s',
@@ -52,7 +60,8 @@ else:
     logging.basicConfig()
 
 # Add the ability to toggle jit when DISABLE_JIT = 1
-DISABLE_JIT = os.environ.get('DISABLE_JIT')
-if DISABLE_JIT is not None and DISABLE_JIT == "1":
+if DISABLE_JIT == 1:
     print("Disabling JIT.")
     config.update('jax_disable_jit', True)
+
+print("Running On Jax Platform: {}".format(jax.default_backend().upper()))
