@@ -34,8 +34,10 @@ def accuracy(params, batch):
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = serial(
-    Conv(6, (5, 5), padding='SAME'), Elu,
-    Conv(16, (3, 3), padding='SAME'), Elu,
+    Conv(64, (5, 5), padding='SAME'), Elu,
+    MaxPool((2, 2), strides=(2, 2)),
+    Conv(32, (3, 3), padding='SAME'), Elu,
+    MaxPool((2, 2), strides=(2, 2)),
     Flatten(),
     Dense(120), Elu,
     Dense(84), Elu,
@@ -45,7 +47,7 @@ net_init, net_predict = serial(
 if __name__ == "__main__":
     rng = random.PRNGKey(0)
 
-    step_size = 0.001
+    step_size = 0.003
     num_epochs = 10
     batch_size = 128
     momentum_mass = 0.9
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     # Then you will run out or RAM and get a std::bad_alloc error.
     accuracy_batch_size = 1000
 
-    train_images, train_labels, test_images, test_labels = datasets.mnist()
+    train_images, train_labels, test_images, test_labels = datasets.fashion_mnist()
     num_train = train_images.shape[0]
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
@@ -111,6 +113,21 @@ if __name__ == "__main__":
     )
 
     # Visual Debug After Training
+    fashion_dict = {
+        0: "T-shirt / top",
+        1: "Trouser",
+        2: "Pullover",
+        3: "Dress",
+        4: "Coat",
+        5: "Sandal",
+        6: "Shirt",
+        7: "Sneaker",
+        8: "Bag",
+        9: "Ankle boot",
+    }
+
+    # I could also show the guess percentage like below...
+    # https://www.tensorflow.org/tutorials/keras/classification
     rows = 5
     columns = 10
     fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
@@ -122,8 +139,8 @@ if __name__ == "__main__":
         for k in range(columns):
             output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape))
             prediction = jnp.argmax(output, axis=1)
-            prediction = str(prediction)
-            axes[j][k].set_title(prediction)
+            prediction = int(prediction[0])
+            axes[j][k].set_title(fashion_dict[prediction], fontsize = 10)
             axes[j][k].imshow(test_images[i].reshape(28, 28), cmap='gray')
             axes[j][k].get_xaxis().set_visible(False)
             axes[j][k].get_yaxis().set_visible(False)

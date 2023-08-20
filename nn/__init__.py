@@ -4,6 +4,8 @@ from .layers.convolution import Conv
 from .layers.flatten import Flatten
 from .layers.reshape import Reshape
 from .layers.dropout import Dropout
+from .layers.pooling import AvgPool, MaxPool, SumPool
+from .layers.batchnorm import BatchNorm
 
 # Layer Combinators
 from .combinators.serial import serial

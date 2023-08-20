@@ -74,3 +74,50 @@ def mnist(permute_train=False):
         train_labels = train_labels[perm]
 
     return train_images, train_labels, test_images, test_labels
+
+def fashion_mnist_raw():
+    """Download and parse the raw fashion MNIST dataset."""
+    base_url = "https://storage.googleapis.com/tensorflow/tf-keras-datasets/"
+
+    def parse_labels(filename):
+        with gzip.open(filename, "rb") as fh:
+            _ = struct.unpack(">II", fh.read(8))
+            return np.array(array.array("B", fh.read()), dtype=np.uint8)
+
+    def parse_images(filename):
+        with gzip.open(filename, "rb") as fh:
+            _, num_data, rows, cols = struct.unpack(">IIII", fh.read(16))
+            return np.array(array.array("B", fh.read()), dtype=np.uint8).reshape(
+                num_data, rows, cols
+            )
+
+    for filename in [
+        "train-images-idx3-ubyte.gz",
+        "train-labels-idx1-ubyte.gz",
+        "t10k-images-idx3-ubyte.gz",
+        "t10k-labels-idx1-ubyte.gz",
+    ]:
+        _download(base_url + filename, "fashion-" + filename)
+
+    train_images = parse_images(path.join(_DATA, "fashion-train-images-idx3-ubyte.gz"))
+    train_labels = parse_labels(path.join(_DATA, "fashion-train-labels-idx1-ubyte.gz"))
+    test_images = parse_images(path.join(_DATA, "fashion-t10k-images-idx3-ubyte.gz"))
+    test_labels = parse_labels(path.join(_DATA, "fashion-t10k-labels-idx1-ubyte.gz"))
+
+    return train_images, train_labels, test_images, test_labels
+
+def fashion_mnist(permute_train=False):
+    """Download, parse and process MNIST data to unit scale and one-hot labels."""
+    train_images, train_labels, test_images, test_labels = fashion_mnist_raw()
+
+    train_images = _partial_flatten(train_images) / np.float32(255.0)
+    test_images = _partial_flatten(test_images) / np.float32(255.0)
+    train_labels = _one_hot(train_labels, 10)
+    test_labels = _one_hot(test_labels, 10)
+
+    if permute_train:
+        perm = np.random.RandomState(0).permutation(train_images.shape[0])
+        train_images = train_images[perm]
+        train_labels = train_labels[perm]
+
+    return train_images, train_labels, test_images, test_labels

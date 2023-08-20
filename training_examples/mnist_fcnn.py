@@ -133,7 +133,6 @@ if __name__ == "__main__":
         for k in range(columns):
             output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape))
             prediction = jnp.argmax(output, axis=1)
-            # Convert to a string to prevent an error with cupy
             prediction = str(prediction)
             axes[j][k].set_title(prediction)
             axes[j][k].imshow(test_images[i].reshape(28, 28), cmap='gray')
