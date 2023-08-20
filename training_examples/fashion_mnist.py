@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     # Visual Debug After Training
     fashion_dict = {
-        0: "T-shirt / top",
+        0: "T-shirt / Top",
         1: "Trouser",
         2: "Pullover",
         3: "Dress",
@@ -138,9 +138,10 @@ if __name__ == "__main__":
     for j in range(rows):
         for k in range(columns):
             output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape))
-            prediction = jnp.argmax(output, axis=1)
-            prediction = int(prediction[0])
-            axes[j][k].set_title(fashion_dict[prediction], fontsize = 10)
+            prediction = int(jnp.argmax(output, axis=1)[0])
+            target = int(jnp.argmax(test_labels[i], axis=0))
+            prediction_color = "green" if prediction == target else "red"
+            axes[j][k].set_title(fashion_dict[prediction], fontsize = 10, color=prediction_color)
             axes[j][k].imshow(test_images[i].reshape(28, 28), cmap='gray')
             axes[j][k].get_xaxis().set_visible(False)
             axes[j][k].get_yaxis().set_visible(False)

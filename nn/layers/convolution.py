@@ -39,7 +39,6 @@ from nn.decorators.convolution_decorator import convolution_decorator
 
 # https://jax.readthedocs.io/en/latest/notebooks/convolutions.html
 
-@convolution_decorator
 def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padding='VALID', weight_init=None, bias_init=normal(1e-6)):
   """Layer construction function for a general convolution layer."""
   lhs_spec, rhs_spec, out_spec = dimension_numbers
@@ -69,3 +68,5 @@ def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padd
 
 # input_shape = (-1, input_height, input_width, input_channels)
 Conv = functools.partial(GeneralConv, ('NHWC', 'HWIO', 'NHWC'))
+# Cannot use the decorator annotation on the main function because of partial function definition.
+Conv = convolution_decorator(Conv)
