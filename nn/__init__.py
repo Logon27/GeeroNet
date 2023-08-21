@@ -6,9 +6,13 @@ from .layers.reshape import Reshape
 from .layers.dropout import Dropout
 from .layers.pooling import AvgPool, MaxPool, SumPool
 from .layers.batchnorm import BatchNorm
+from .layers.identity import Identity
 
 # Layer Combinators
 from .combinators.serial import serial
+from .combinators.parallel import parallel
+from .combinators.shape_dependent import shape_dependent
+from .combinators.fan import FanOut, FanInSum, FanInConcat
 
 # Activation Functions
 from .activations.activations import Tanh, Relu, Exp, LogSoftmax, Softmax, Softplus, Sigmoid, Elu, LeakyRelu, Selu, Gelu
