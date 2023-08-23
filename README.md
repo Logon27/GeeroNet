@@ -1,6 +1,6 @@
-# GeeroNet
+# Geero
 
-GeeroNet is a simple neural network library built using [Google Jax](https://github.com/google/jax). This library is mainly for educational purposes and to experiment with deep learning methods.
+Geero is a simple neural network library built using [Google Jax](https://github.com/google/jax). This library is mainly for educational purposes and to experiment with deep learning methods.
 
 ## Setup and Installation
 
@@ -9,17 +9,17 @@ GeeroNet is a simple neural network library built using [Google Jax](https://git
 #### Create a virtual environment
 
 ```bash
-python -m venv venvGeeroNet
+python -m venv venvGeero
 ```
 
 #### Activate your virtual environment
 
 ```bash
 # Linux (WSL2)
-. venvGeeroNet/bin/activate
+. venvGeero/bin/activate
 
 # Alternate Linux Method
-source venvGeeroNet/bin/activate
+source venvGeero/bin/activate
 ```
 
 Sometimes VSCode will automatically activate the venv, sometimes it does not. You can use one of the above commands to activate the venv. Or sometimes just closing and reopening your terminal will cause it to properly source your venv.
@@ -69,7 +69,7 @@ Examples of the docstring format can be found below:
 
 ### Initializers
 
-Currently all initializers used within GeeroNet are from the [initializers](https://jax.readthedocs.io/en/latest/jax.nn.initializers.html) implementation in Jax. I may port them over at some point for visibility. But for now you can reference and use the Jax documentation for initializers.
+Currently all initializers used within Geero are from the [initializers](https://jax.readthedocs.io/en/latest/jax.nn.initializers.html) implementation in Jax. I may port them over at some point for visibility. But for now you can reference and use the Jax documentation for initializers.
 
 ## Geero Rules
 
