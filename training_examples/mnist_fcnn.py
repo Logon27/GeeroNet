@@ -5,6 +5,10 @@ It takes a little over a minute per epoch on a modern processor."""
 import sys
 sys.path.append("..")
 
+# Import the TQDM config for cleaner progress bars
+import training_examples.tqdm_config # pyright: ignore
+from tqdm import trange
+
 import time
 import itertools
 
@@ -91,7 +95,7 @@ if __name__ == "__main__":
     # Maybe I can batch the accuracy calculations.
     print("\nStarting training...")
     training_start_time = time.time()
-    for epoch in range(num_epochs):
+    for epoch in (t := trange(num_epochs)):
         start_time = time.time()
         for _ in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
@@ -107,11 +111,7 @@ if __name__ == "__main__":
         #     test_acc += accuracy(params, next(batches))
         # train_acc /= num_batches
         # test_acc /= num_batches
-        print(
-            "{:>{}}/{}, Accuracy Train = {:.2%}, Accuracy Test = {:.2%}, in {:.2f} seconds".format(
-                (epoch + 1), len(str(num_epochs)), num_epochs, train_acc, test_acc, epoch_time
-            )
-        )
+        t.set_description("Accuracy Train = {:.2%}, Accuracy Test = {:.2%}".format(train_acc, test_acc))
 
     training_end_time = time.time()
     time_elapsed_mins = (training_end_time - training_start_time) / 60

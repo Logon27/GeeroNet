@@ -3,6 +3,8 @@ jax[cpu]
 numpy
 dm-pix
 Pillow
+# For progress bars
+tqdm
 # Used for visualization
 matplotlib
 # Used for saving weights to a file
