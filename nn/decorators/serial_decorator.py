@@ -18,15 +18,15 @@ def debug_decorator(serial_debug):
 
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape):
-                jax.debug.print("\n=== Start Init Fun Execution ===")
+                print("\n=== Start Init Fun Execution ===")
                 start_time_forward = time.time()
 
                 output_shape, params = init_fun_debug(rng, input_shape)
 
                 end_time_forward = time.time()
                 time_elapsed_ms = (end_time_forward - start_time_forward)
-                jax.debug.print("Serial Initialization Took: {:.2f} seconds", time_elapsed_ms)
-                jax.debug.print("=== End Init Fun Execution ===\n")
+                print("Serial Initialization Took: {:.2f} seconds".format(time_elapsed_ms))
+                print("=== End Init Fun Execution ===\n")
                 jax.debug.breakpoint()
 
                 return output_shape, params
@@ -35,7 +35,7 @@ def debug_decorator(serial_debug):
             def apply_fun(params: List[Params], inputs: ArrayLike, **kwargs):
                 if logging.getLevelName(logging.root.level) == "INFO2":
                     # Before Function Execution
-                    jax.debug.print("\n=== Start Serial Forward Pass Execution ===")
+                    print("\n=== Start Serial Forward Pass Execution ===")
                     start_time_forward = time.time()
 
                     result = apply_fun_debug(params, inputs, **kwargs)
@@ -43,8 +43,8 @@ def debug_decorator(serial_debug):
                     # After Function Execution
                     end_time_forward = time.time()
                     time_elapsed_ms = (end_time_forward - start_time_forward) * 1000
-                    jax.debug.print("Forward Pass Took: {:.2f} ms", time_elapsed_ms)
-                    jax.debug.print("=== End Serial Forward Pass Execution ===\n")
+                    print("Forward Pass Took: {:.2f} ms".format(time_elapsed_ms))
+                    print("=== End Serial Forward Pass Execution ===\n")
                     jax.debug.breakpoint()
                     # returning the value to the original frame
                     return result
