@@ -54,7 +54,7 @@ By default the requirements.txt file will install jax for cpu. However, to take 
 
 ## Environment Variables And Logging Levels
 
-For a list of available environment variables and logging levels, please see [env_vars](env_vars.md).
+Please see [env_vars](env_vars.md), for a list of available environment variables and logging levels.
 
 ## Docstring Format (Google)
 

@@ -46,7 +46,7 @@ net_init, net_predict = serial(
     Dense(10), LogSoftmax,
 )
 
-if __name__ == "__main__":
+def main():
     rng = random.PRNGKey(0)
 
     step_size = 0.001
@@ -90,34 +90,24 @@ if __name__ == "__main__":
     itercount = itertools.count()
 
     print("\nStarting training...")
-    training_start_time = time.time()
     for epoch in (t := trange(num_epochs)):
-        start_time = time.time()
         for _ in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
-        epoch_time = time.time() - start_time
 
         params = get_params(opt_state)
         train_acc = accuracy(params, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
         test_acc = accuracy(params, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
-        t.set_description("Accuracy Train = {:.2%}, Accuracy Test = {:.2%}".format(train_acc, test_acc))
-
-    training_end_time = time.time()
-    time_elapsed_mins = (training_end_time - training_start_time) / 60
-    print(
-        "Training Complete. Elapsed Time = {:.2f} seconds. Or {:.2f} minutes.".format(
-            training_end_time - training_start_time, time_elapsed_mins
-        )
-    )
+        t.set_description_str("Accuracy Train = {:.2%}, Accuracy Test = {:.2%}".format(train_acc, test_acc))
+    print("Training Complete.")
 
     # Visual Debug After Training
-    rows = 5
-    columns = 10
+    visual_debug(get_params(opt_state), test_images, test_labels)
+
+def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, columns=10):
     fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
     fig.canvas.manager.set_window_title('Network Predictions')
     # "i" represents the test set starting index.
-    i = 0
-    params = get_params(opt_state)
+    i = starting_index
     for j in range(rows):
         for k in range(columns):
             output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape))
@@ -130,3 +120,6 @@ if __name__ == "__main__":
             axes[j][k].get_yaxis().set_visible(False)
             i += 1
     plt.show()
+
+if __name__ == "__main__":
+    main()
