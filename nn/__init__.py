@@ -33,23 +33,21 @@ from .data_processing.image_utils import save_grayscale_image, upscale_grayscale
 # Saving and loading weights from file
 from .data_processing.file_io import save_params, load_params
 
+# Decorators
+from .decorators.model_decorator import model_decorator
+
 # Set logging level based on environment variable. See Readme for level details.
 import logging
-import os
 from jax.config import config
 import jax
-
-def getenv(key, default=0):
-    # Gets the environment variable or the default value if the env var is not set.
-    # Then casts the value to the type of 'default'
-    return type(default)(os.getenv(key, default))
+from .helpers.envvar import getenv
 
 LOG_LEVEL = getenv('LOGLEVEL', 'WARNING')
 DISABLE_JIT = getenv('DISABLE_JIT', 0)
 
 valid_debug_modes = {'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'INFO2', 'DEBUG', 'NOTSET'}
 if LOG_LEVEL in valid_debug_modes:
-    logging.addLevelName(19, "INFO2")
+    logging.addLevelName(21, "INFO2")
     logging.basicConfig(
         format='%(levelname)s: %(message)s',
         level=LOG_LEVEL.upper()

@@ -1,10 +1,8 @@
 from typing import Tuple
 from jax.typing import ArrayLike
 from jax.random import PRNGKey
-import jax.numpy as jnp
 from nn.typing import Params
-import logging
-import jax
+from nn.helpers.envvar import getenv
 import functools
 
 def debug_decorator(dense_debug):
@@ -13,7 +11,7 @@ def debug_decorator(dense_debug):
     """
     @functools.wraps(dense_debug)
     def Dense(*args, **kwargs):
-        if logging.getLevelName(logging.root.level) == "INFO2":
+        if getenv("MODEL_DEBUG", True):
             init_fun_debug, apply_fun_debug = dense_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

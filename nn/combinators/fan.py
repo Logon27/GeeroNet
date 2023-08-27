@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import jax.numpy as jnp
+from nn.decorators.fan_in_sum_decorator import debug_decorator
 
 
 def FanOut(num):
@@ -27,7 +28,7 @@ def FanInSum():
   init_fun = lambda rng, input_shape: (input_shape[0], ())
   apply_fun = lambda params, inputs, **kwargs: sum(inputs)
   return init_fun, apply_fun
-FanInSum = FanInSum()
+FanInSum = debug_decorator(FanInSum)()
 
 
 def FanInConcat(axis=-1):

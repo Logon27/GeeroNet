@@ -1,17 +1,16 @@
 from jax.typing import ArrayLike
 from jax.random import PRNGKey
 from nn.typing import Params
-import logging
-import jax
+from nn.helpers.envvar import getenv
 import functools
 
-def convolution_decorator(convolution_debug):
+def debug_decorator(convolution_debug):
     """
     Decorator to print debug information of the forward pass for INFO2 log level.
     """
     @functools.wraps(convolution_debug)
     def GeneralConv(*args, **kwargs):
-        if logging.getLevelName(logging.root.level) == "INFO2":
+        if getenv("MODEL_DEBUG", True):
             init_fun_debug, apply_fun_debug = convolution_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

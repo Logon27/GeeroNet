@@ -38,7 +38,7 @@ def accuracy(params, batch):
     return jnp.mean(predicted_class == target_class)
 
 Main = serial(Dense(1024), Relu, Dense(784), Relu)
-net_init, net_predict = serial(
+net_init, net_predict = model_decorator(serial)(
     FanOut(2),
     # The output shapes must match so a sum can be performed.
     parallel(Main, Identity),
@@ -47,6 +47,16 @@ net_init, net_predict = serial(
     Dense(10),
     LogSoftmax
 )
+
+# net_init, net_predict = model_decorator(serial)(serial(
+#     FanOut(2),
+#     # The output shapes must match so a sum can be performed.
+#     parallel(Main, Identity()),
+#     FanInSum,
+#     Relu,
+#     Dense(10),
+#     LogSoftmax
+# ))
 
 def main():
     rng = random.PRNGKey(0)

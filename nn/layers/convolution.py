@@ -17,7 +17,7 @@ import functools
 from jax import lax
 from jax import random
 from jax.nn.initializers import glorot_normal, normal
-from nn.decorators.convolution_decorator import convolution_decorator
+from nn.decorators.convolution_decorator import debug_decorator
 
 # N - batch dimension
 # H - spatial height
@@ -69,4 +69,4 @@ def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padd
 # input_shape = (-1, input_height, input_width, input_channels)
 Conv = functools.partial(GeneralConv, ('NHWC', 'HWIO', 'NHWC'))
 # Cannot use the decorator annotation on the main function because of partial function definition.
-Conv = convolution_decorator(Conv)
+Conv = debug_decorator(Conv)

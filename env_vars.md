@@ -36,8 +36,8 @@ Example: `LOGLEVEL=INFO2 python mnist.py`
 | CRITICAL      | 50            |       |
 | ERROR         | 40            |       |
 | WARNING       | 30            |       |
+| INFO2         | 21            | Enhanced logging for forward pass |
 | INFO          | 20            |       |
-| INFO2         | 19            | Enhanced logging for forward pass |
 | DEBUG         | 10            |       |
 | NOTSET        | 0             |       |
 

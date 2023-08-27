@@ -13,8 +13,10 @@
 # limitations under the License.
 
 from jax import random
+from nn.decorators.parallel_decorator import debug_decorator
 
 
+@debug_decorator
 def parallel(*layers):
     """Combinator for composing layers in parallel.
 
