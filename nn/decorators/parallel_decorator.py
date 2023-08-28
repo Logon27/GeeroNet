@@ -12,7 +12,7 @@ def debug_decorator(parallel_debug):
     """
     @functools.wraps(parallel_debug)
     def parallel(*args, **kwargs):
-        if getenv("MODEL_DEBUG", True):
+        if getenv("MODEL_DEBUG", 1):
             init_fun_debug, apply_fun_debug = parallel_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

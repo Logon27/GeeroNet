@@ -11,7 +11,7 @@ def debug_decorator(dense_debug):
     """
     @functools.wraps(dense_debug)
     def Dense(*args, **kwargs):
-        if getenv("MODEL_DEBUG", True):
+        if getenv("MODEL_DEBUG", 1):
             init_fun_debug, apply_fun_debug = dense_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

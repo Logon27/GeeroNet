@@ -10,7 +10,7 @@ def debug_decorator(flatten_debug):
     """
     @functools.wraps(flatten_debug)
     def Flatten(*args, **kwargs):
-        if getenv("MODEL_DEBUG", True):
+        if getenv("MODEL_DEBUG", 1):
             init_fun_debug, apply_fun_debug = flatten_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

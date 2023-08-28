@@ -10,7 +10,7 @@ def debug_decorator(reshape_debug):
     """
     @functools.wraps(reshape_debug)
     def Reshape(*args, **kwargs):
-        if getenv("MODEL_DEBUG", True):
+        if getenv("MODEL_DEBUG", 1):
             init_fun_debug, apply_fun_debug = reshape_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

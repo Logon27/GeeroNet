@@ -11,7 +11,7 @@ def debug_decorator(serial_debug):
     """
     @functools.wraps(serial_debug)
     def serial(*args, **kwargs):
-        if getenv("MODEL_DEBUG", True):
+        if getenv("MODEL_DEBUG", 1):
             init_fun_debug, apply_fun_debug = serial_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)
