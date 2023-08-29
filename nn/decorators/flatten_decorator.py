@@ -1,8 +1,9 @@
 from jax.typing import ArrayLike
 from jax.random import PRNGKey
 from nn.typing import Params
-from nn.helpers.envvar import getenv
 import functools
+import logging
+
 
 def debug_decorator(flatten_debug):
     """
@@ -10,7 +11,7 @@ def debug_decorator(flatten_debug):
     """
     @functools.wraps(flatten_debug)
     def Flatten(*args, **kwargs):
-        if getenv("MODEL_DEBUG", 1):
+        if logging.getLevelName(logging.root.level) == "INFO2":
             init_fun_debug, apply_fun_debug = flatten_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

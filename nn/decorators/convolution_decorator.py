@@ -1,16 +1,17 @@
 from jax.typing import ArrayLike
 from jax.random import PRNGKey
 from nn.typing import Params
-from nn.helpers.envvar import getenv
 import functools
+import logging
 
+# When running against the fashion set some shape values return 0 for batch size. I believe this is due to max pooling.
 def debug_decorator(convolution_debug):
     """
     Decorator to print debug information of the forward pass for INFO2 log level.
     """
     @functools.wraps(convolution_debug)
     def GeneralConv(*args, **kwargs):
-        if getenv("MODEL_DEBUG", 1):
+        if logging.getLevelName(logging.root.level) == "INFO2":
             init_fun_debug, apply_fun_debug = convolution_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)

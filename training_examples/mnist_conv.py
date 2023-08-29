@@ -37,13 +37,15 @@ def accuracy(params, batch):
     predicted_class = jnp.argmax(net_predict(params, inputs), axis=1)
     return jnp.mean(predicted_class == target_class)
 
-net_init, net_predict = serial(
-    Conv(6, (5, 5), padding='SAME'), Elu,
-    Conv(16, (3, 3), padding='SAME'), Elu,
-    Flatten(),
-    Dense(120), Elu,
-    Dense(84), Elu,
-    Dense(10), LogSoftmax,
+net_init, net_predict = model_decorator(
+    serial(
+        Conv(6, (5, 5), padding='SAME'), Elu,
+        Conv(16, (3, 3), padding='SAME'), Elu,
+        Flatten(),
+        Dense(120), Elu,
+        Dense(84), Elu,
+        Dense(10), LogSoftmax,
+    )
 )
 
 def main():
@@ -89,7 +91,7 @@ def main():
     opt_state = opt_init(init_params)
     itercount = itertools.count()
 
-    print("\nStarting training...")
+    print("Starting training...")
     for epoch in (t := trange(num_epochs)):
         for _ in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
