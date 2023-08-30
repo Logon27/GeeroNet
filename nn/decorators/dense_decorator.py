@@ -4,6 +4,7 @@ from jax.random import PRNGKey
 from nn.typing import Params
 import functools
 import logging
+import jax
 
 
 def debug_decorator(dense_debug):
@@ -25,14 +26,14 @@ def debug_decorator(dense_debug):
                 else:
                     debug_msg = "Dense(Input Shape: {}, Output Shape: {} => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
                     debug_msg = debug_msg.replace("-1", "*")
-                print(debug_msg)
+                jax.debug.print(debug_msg)
                 return output_shape, (weights, bias)
             
             @functools.wraps(apply_fun_debug)
             def apply_fun(params: Params, inputs: ArrayLike, **kwargs):
                 weights, bias = params
                 result = apply_fun_debug(params, inputs, **kwargs)
-                print("I({}, {}) @ W({}, {}) + B({}, {}) = Output Shape: {}".format(
+                jax.debug.print("I({}, {}) @ W({}, {}) + B({}, {}) = Output Shape: {}".format(
                     inputs.shape[0], inputs.shape[1], weights.shape[0], weights.shape[1], bias.shape[0], bias.shape[1], result.shape
                 ))
                 return result

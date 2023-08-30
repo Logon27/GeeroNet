@@ -3,6 +3,8 @@ from jax.random import PRNGKey
 from nn.typing import Params
 import functools
 import logging
+import jax
+
 
 # When running against the fashion set some shape values return 0 for batch size. I believe this is due to max pooling.
 def debug_decorator(convolution_debug):
@@ -19,14 +21,14 @@ def debug_decorator(convolution_debug):
                 output_shape, (weights, bias) = init_fun_debug(rng, input_shape)
                 debug_msg = "Conv(Input Shape: {}, Output Shape: {}) => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
                 debug_msg = debug_msg.replace("-1", "*")
-                print(debug_msg)
+                jax.debug.print(debug_msg)
                 return output_shape, (weights, bias)
             
             @functools.wraps(apply_fun_debug)
             def apply_fun(params, inputs, **kwargs):
                 weights, bias = params
                 result = apply_fun_debug(params, inputs, **kwargs)
-                print("I{} * W{} + B{} = Output Shape: {}".format(inputs.shape, weights.shape, bias.shape, result.shape))
+                jax.debug.print("I{} * W{} + B{} = Output Shape: {}".format(inputs.shape, weights.shape, bias.shape, result.shape))
                 return result
 
             return init_fun, apply_fun

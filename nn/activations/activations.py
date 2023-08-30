@@ -29,8 +29,9 @@ from jax.nn import (
     gelu,
 )
 import jax.numpy as jnp
+from nn.decorators.activation_decorator import debug_decorator
 
-
+@debug_decorator
 def elementwise(fun, **fun_kwargs):
     """Layer that applies a scalar function elementwise on its inputs."""
     init_fun = lambda rng, input_shape: (input_shape, ())
@@ -49,3 +50,15 @@ Elu = elementwise(elu)
 LeakyRelu = elementwise(leaky_relu)
 Selu = elementwise(selu)
 Gelu = elementwise(gelu)
+
+# Tanh = debug_decorator(Tanh, "Tanh")()
+# Relu = debug_decorator(Relu, "Relu")()
+# Exp = 
+# LogSoftmax = 
+# Softmax = 
+# Softplus = 
+# Sigmoid = 
+# Elu = 
+# LeakyRelu = 
+# Selu = 
+# Gelu = 

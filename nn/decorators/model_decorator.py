@@ -14,15 +14,15 @@ def model_decorator(tuple_of_functions):
 
         @functools.wraps(tuple_init_fun)
         def init_fun(rng: PRNGKey, input_shape):
-            print("=== Start Init Fun Execution ===")
+            jax.debug.print("=== Start Init Fun Execution ===")
             start_time_forward = time.time()
 
             output_shape, params = tuple_init_fun(rng, input_shape)
 
             end_time_forward = time.time()
             time_elapsed_ms = (end_time_forward - start_time_forward)
-            print("Initialization Took: {:.2f} seconds".format(time_elapsed_ms))
-            print("=== End Init Fun Execution ===\n")
+            jax.debug.print("Initialization Took: {:.2f} seconds".format(time_elapsed_ms))
+            jax.debug.print("=== End Init Fun Execution ===\n")
             jax.debug.breakpoint()
 
             return output_shape, params
@@ -30,7 +30,7 @@ def model_decorator(tuple_of_functions):
         @functools.wraps(tuple_apply_fun)
         def apply_fun(params: List[Params], inputs: ArrayLike, **kwargs):
             # Before Function Execution
-            print("=== Start Forward Pass Execution ===")
+            jax.debug.print("=== Start Forward Pass Execution ===")
             start_time_forward = time.time()
 
             result = tuple_apply_fun(params, inputs, **kwargs)
@@ -38,8 +38,8 @@ def model_decorator(tuple_of_functions):
             # After Function Execution
             end_time_forward = time.time()
             time_elapsed_ms = (end_time_forward - start_time_forward) * 1000
-            print("Forward Pass Took: {:.2f} ms".format(time_elapsed_ms))
-            print("=== End Forward Pass Execution ===\n")
+            jax.debug.print("Forward Pass Took: {:.2f} ms".format(time_elapsed_ms))
+            jax.debug.print("=== End Forward Pass Execution ===\n")
             jax.debug.breakpoint()
             # returning the value to the original frame
             return result

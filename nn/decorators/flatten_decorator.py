@@ -3,6 +3,7 @@ from jax.random import PRNGKey
 from nn.typing import Params
 import functools
 import logging
+import jax
 
 
 def debug_decorator(flatten_debug):
@@ -19,13 +20,13 @@ def debug_decorator(flatten_debug):
                 output_shape, () = init_fun_debug(rng, input_shape)
                 debug_msg = "Flatten(Input Shape: {}, Output Shape: {})".format(input_shape, output_shape)
                 debug_msg = debug_msg.replace("-1", "*")
-                print(debug_msg)
+                jax.debug.print(debug_msg)
                 return output_shape, ()
             
             @functools.wraps(apply_fun_debug)
             def apply_fun(params: Params, inputs: ArrayLike, **kwargs):
                 result = apply_fun_debug(params, inputs, **kwargs)
-                print("Flatten{} = Output Shape: {}".format(
+                jax.debug.print("Flatten{} = Output Shape: {}".format(
                     inputs.shape, result.shape
                 ))
                 return result
