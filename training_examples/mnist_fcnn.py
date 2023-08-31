@@ -9,7 +9,6 @@ sys.path.append("..")
 import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
-import time
 import itertools
 
 import numpy.random as npr
@@ -40,11 +39,13 @@ def accuracy(params, batch):
     predicted_class = jnp.argmax(net_predict(params, inputs), axis=1)
     return jnp.mean(predicted_class == target_class)
 
-net_init, net_predict = serial(
-    Conv(16, (5, 5), padding='SAME'), Relu,
-    Conv(8, (3, 3), padding='SAME'), Relu,
-    Conv(10, (22, 22), padding='SAME'),
-    Flatten(), LogSoftmax,
+net_init, net_predict = model_decorator(
+    serial(
+        Conv(16, (5, 5), padding='SAME'), Relu,
+        Conv(8, (3, 3), padding='SAME'), Relu,
+        Conv(10, (22, 22), padding='SAME'),
+        Flatten(), LogSoftmax,
+    )
 )
 
 # https://machinelearningmastery.com/introduction-to-1x1-convolutions-to-reduce-the-complexity-of-convolutional-neural-networks/
@@ -93,7 +94,7 @@ def main():
     itercount = itertools.count()
 
     # Maybe I can batch the accuracy calculations.
-    print("\nStarting training...")
+    print("Starting training...")
     for epoch in (t := trange(num_epochs)):
         for _ in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))

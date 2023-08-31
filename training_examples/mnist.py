@@ -6,7 +6,6 @@ sys.path.append("..")
 import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
-import time
 import itertools
 
 import numpy.random as npr
@@ -37,13 +36,15 @@ def accuracy(params, batch):
     predicted_class = jnp.argmax(net_predict(params, inputs), axis=1)
     return jnp.mean(predicted_class == target_class)
 
-net_init, net_predict = serial(
-    Dense(1024),
-    Relu,
-    Dense(1024),
-    Relu,
-    Dense(10),
-    LogSoftmax
+net_init, net_predict = model_decorator(
+    serial(
+        Dense(1024),
+        Relu,
+        Dense(1024),
+        Relu,
+        Dense(10),
+        LogSoftmax
+    )
 )
 
 def main():
@@ -82,7 +83,7 @@ def main():
     opt_state = opt_init(init_params)
     itercount = itertools.count()
 
-    print("\nStarting training...")
+    print("Starting training...")
     for epoch in (t := trange(num_epochs)):
         for _ in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))

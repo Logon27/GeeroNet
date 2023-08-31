@@ -13,8 +13,12 @@
 # limitations under the License.
 
 import jax.numpy as jnp
+from nn.decorators.fan_in_sum_decorator import debug_decorator as faninsum_debug_decorator
+from nn.decorators.fan_out_decorator import debug_decorator as fanout_debug_decorator
+from nn.decorators.fan_in_concat_decorator import debug_decorator as faninconcat_decorator
 
 
+@fanout_debug_decorator
 def FanOut(num):
   """Layer construction function for a fan-out layer."""
   init_fun = lambda rng, input_shape: ([input_shape] * num, ())
@@ -27,9 +31,10 @@ def FanInSum():
   init_fun = lambda rng, input_shape: (input_shape[0], ())
   apply_fun = lambda params, inputs, **kwargs: sum(inputs)
   return init_fun, apply_fun
-FanInSum = FanInSum()
+FanInSum = faninsum_debug_decorator(FanInSum)()
 
 
+@faninconcat_decorator
 def FanInConcat(axis=-1):
   """Layer construction function for a fan-in concatenation layer."""
   def init_fun(rng, input_shape):

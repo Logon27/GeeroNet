@@ -6,33 +6,29 @@ import logging
 import jax
 
 
-def debug_decorator(reshape_debug):
+def debug_decorator(activation_debug):
     """
-    Decorator to wrap the Reshape layer.
+    Decorator used to wrap all activation functions.
     """
-    @functools.wraps(reshape_debug)
-    def Reshape(*args, **kwargs):
+    @functools.wraps(activation_debug)
+    def Activation(*args, **kwargs):
         if logging.getLevelName(logging.root.level) == "INFO2":
-            init_fun_debug, apply_fun_debug = reshape_debug(*args, **kwargs)
+            init_fun_debug, apply_fun_debug = activation_debug(*args, **kwargs)
 
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape: ArrayLike):
                 output_shape, () = init_fun_debug(rng, input_shape)
-                debug_msg = "Reshape(Input Shape: {}, Output Shape: {})".format(input_shape, output_shape)
-                debug_msg = debug_msg.replace("-1", "*")
-                jax.debug.print(debug_msg)
+                jax.debug.print(args[0].__name__.capitalize() + "()")
                 return output_shape, ()
             
             @functools.wraps(apply_fun_debug)
             def apply_fun(params: Params, inputs: ArrayLike, **kwargs):
                 result = apply_fun_debug(params, inputs, **kwargs)
-                jax.debug.print("Reshape{} = Output Shape: {}".format(
-                    inputs.shape, result.shape
-                ))
+                jax.debug.print(args[0].__name__.capitalize() + "()")
                 return result
 
             return init_fun, apply_fun
         else:
-            return reshape_debug(*args, **kwargs)
+            return activation_debug(*args, **kwargs)
         
-    return Reshape
+    return Activation
