@@ -8,7 +8,7 @@ import jax
 
 def debug_decorator(reshape_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator to wrap the Reshape layer.
     """
     @functools.wraps(reshape_debug)
     def Reshape(*args, **kwargs):

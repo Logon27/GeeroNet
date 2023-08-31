@@ -8,6 +8,9 @@ import functools
 import logging
 
 def model_decorator(tuple_of_functions):
+    """
+    Decorator that wraps the outer function of a model in order to track execution time and provide text based separators
+    """
     if logging.getLevelName(logging.root.level) == "INFO2":
         tuple_init_fun = tuple_of_functions[0]
         tuple_apply_fun = tuple_of_functions[1]
@@ -21,8 +24,8 @@ def model_decorator(tuple_of_functions):
 
             end_time_forward = time.time()
             time_elapsed_ms = (end_time_forward - start_time_forward)
-            jax.debug.print("Initialization Took: {:.2f} seconds".format(time_elapsed_ms))
             jax.debug.print("=== End Init Fun Execution ===\n")
+            jax.debug.print("Initialization Took: {:.2f} seconds".format(time_elapsed_ms))
             jax.debug.breakpoint()
 
             return output_shape, params
@@ -38,8 +41,8 @@ def model_decorator(tuple_of_functions):
             # After Function Execution
             end_time_forward = time.time()
             time_elapsed_ms = (end_time_forward - start_time_forward) * 1000
-            jax.debug.print("Forward Pass Took: {:.2f} ms".format(time_elapsed_ms))
             jax.debug.print("=== End Forward Pass Execution ===\n")
+            jax.debug.print("Forward Pass Took: {:.2f} ms".format(time_elapsed_ms))
             jax.debug.breakpoint()
             # returning the value to the original frame
             return result

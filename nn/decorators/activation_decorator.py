@@ -8,7 +8,7 @@ import jax
 
 def debug_decorator(activation_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator used to wrap all activation functions.
     """
     @functools.wraps(activation_debug)
     def Activation(*args, **kwargs):

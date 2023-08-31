@@ -39,8 +39,7 @@ def parallel(*layers):
         rngs = random.split(rng, nlayers)
         return zip(
             *[
-                init(rng, shape)
-                for init, rng, shape in zip(init_funs, rngs, input_shape)
+                init(rng, shape) for init, rng, shape in zip(init_funs, rngs, input_shape)
             ]
         )
 
@@ -48,8 +47,7 @@ def parallel(*layers):
         rng = kwargs.pop("rng", None)
         rngs = random.split(rng, nlayers) if rng is not None else (None,) * nlayers
         return [
-            f(p, x, rng=r, **kwargs)
-            for f, p, x, r in zip(apply_funs, params, inputs, rngs)
+            func(f_params, f_inputs, rng=f_rngs, **kwargs) for func, f_params, f_inputs, f_rngs in zip(apply_funs, params, inputs, rngs)
         ]
 
     return init_fun, apply_fun

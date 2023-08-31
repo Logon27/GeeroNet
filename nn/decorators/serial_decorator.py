@@ -5,6 +5,7 @@ from nn.typing import Params
 import functools
 import logging
 
+
 def debug_decorator(serial_debug):
     """
     Decorator to print debug information of the forward pass for INFO2 log level.

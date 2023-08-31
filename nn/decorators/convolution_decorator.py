@@ -9,7 +9,7 @@ import jax
 # When running against the fashion set some shape values return 0 for batch size. I believe this is due to max pooling.
 def debug_decorator(convolution_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator to wrap the Convolutional layer.
     """
     @functools.wraps(convolution_debug)
     def GeneralConv(*args, **kwargs):

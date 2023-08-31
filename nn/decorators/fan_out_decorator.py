@@ -9,7 +9,7 @@ import jax.numpy as jnp
 
 def debug_decorator(fanout_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator to wrap the FanOut layer.
     """
     @functools.wraps(fanout_debug)
     def FanOut(*args, **kwargs):

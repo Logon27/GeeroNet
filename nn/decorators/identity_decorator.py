@@ -8,7 +8,7 @@ import jax
 
 def debug_decorator(identity_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator to wrap the Identity layer.
     """
     @functools.wraps(identity_debug)
     def Identity(*args, **kwargs):

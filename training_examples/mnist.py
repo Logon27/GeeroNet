@@ -6,7 +6,6 @@ sys.path.append("..")
 import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
-import time
 import itertools
 
 import numpy.random as npr

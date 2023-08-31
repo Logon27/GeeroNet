@@ -6,7 +6,6 @@ sys.path.append("..")
 import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
-import time
 import itertools
 
 import numpy.random as npr
@@ -49,16 +48,6 @@ net_init, net_predict = model_decorator(
         LogSoftmax
     )
 )
-
-# net_init, net_predict = model_decorator(serial)(serial(
-#     FanOut(2),
-#     # The output shapes must match so a sum can be performed.
-#     parallel(Main, Identity()),
-#     FanInSum,
-#     Relu,
-#     Dense(10),
-#     LogSoftmax
-# ))
 
 def main():
     rng = random.PRNGKey(0)

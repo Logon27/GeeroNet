@@ -9,7 +9,7 @@ import jax
 
 def debug_decorator(dense_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator to wrap the Dense layer.
     """
     @functools.wraps(dense_debug)
     def Dense(*args, **kwargs):

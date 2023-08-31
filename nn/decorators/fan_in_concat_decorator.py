@@ -9,7 +9,7 @@ import jax
 # Unvalidated decorator
 def debug_decorator(faninconcat_debug):
     """
-    Decorator to print debug information of the forward pass for INFO2 log level.
+    Decorator to wrap the FanInConcat layer.
     """
     @functools.wraps(faninconcat_debug)
     def FanInConcat(*args, **kwargs):
