@@ -7,6 +7,8 @@ from os import path
 import struct
 import urllib.request
 import numpy as np
+import pickle
+import tarfile
 
 _DATA = "/tmp/jax_example_data/"
 
@@ -16,8 +18,9 @@ def _download(url, filename):
         os.makedirs(_DATA)
     out_file = path.join(_DATA, filename)
     if not path.isfile(out_file):
+        print(f"Downloading {url} to {_DATA}")
         urllib.request.urlretrieve(url, out_file)
-        print(f"downloaded {url} to {_DATA}")
+        print(f"Finished downloading {url} to {_DATA}")
 
 def _partial_flatten(x):
     """Flatten all but the first dimension of an ndarray."""
@@ -44,12 +47,13 @@ def mnist_raw():
                 num_data, rows, cols
             )
 
-    for filename in [
+    filenames = [
         "train-images-idx3-ubyte.gz",
         "train-labels-idx1-ubyte.gz",
         "t10k-images-idx3-ubyte.gz",
         "t10k-labels-idx1-ubyte.gz",
-    ]:
+    ]
+    for filename in filenames:
         _download(base_url + filename, filename)
 
     train_images = parse_images(path.join(_DATA, "train-images-idx3-ubyte.gz"))
@@ -61,6 +65,8 @@ def mnist_raw():
 
 def mnist(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
+    print("Loading MNIST Dataset")
+
     train_images, train_labels, test_images, test_labels = mnist_raw()
 
     train_images = _partial_flatten(train_images) / np.float32(255.0)
@@ -72,6 +78,8 @@ def mnist(permute_train=False):
         perm = np.random.RandomState(0).permutation(train_images.shape[0])
         train_images = train_images[perm]
         train_labels = train_labels[perm]
+
+    print("Finished loading MNIST Dataset")
 
     return train_images, train_labels, test_images, test_labels
 
@@ -90,13 +98,15 @@ def fashion_mnist_raw():
             return np.array(array.array("B", fh.read()), dtype=np.uint8).reshape(
                 num_data, rows, cols
             )
-
-    for filename in [
+    
+    filenames = [
         "train-images-idx3-ubyte.gz",
         "train-labels-idx1-ubyte.gz",
         "t10k-images-idx3-ubyte.gz",
         "t10k-labels-idx1-ubyte.gz",
-    ]:
+    ]
+
+    for filename in filenames:
         _download(base_url + filename, "fashion-" + filename)
 
     train_images = parse_images(path.join(_DATA, "fashion-train-images-idx3-ubyte.gz"))
@@ -108,6 +118,8 @@ def fashion_mnist_raw():
 
 def fashion_mnist(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
+    print("Loading FASHION MNIST Dataset")
+
     train_images, train_labels, test_images, test_labels = fashion_mnist_raw()
 
     train_images = _partial_flatten(train_images) / np.float32(255.0)
@@ -119,5 +131,81 @@ def fashion_mnist(permute_train=False):
         perm = np.random.RandomState(0).permutation(train_images.shape[0])
         train_images = train_images[perm]
         train_labels = train_labels[perm]
+    
+    print("Finished loading FASHION MNIST Dataset")
+
+    return train_images, train_labels, test_images, test_labels
+
+# https://www.cs.toronto.edu/~kriz/cifar.html
+# https://github.com/keras-team/keras/blob/v2.13.1/keras/datasets/cifar10.py#L29-L115
+def cifar10():
+    """Download and parse the raw CIFAR-10 dataset."""
+    print("Loading CIFAR-10 Dataset")
+
+    base_url = "https://www.cs.toronto.edu/~kriz/"
+    cifar_dir = "cifar-10-batches-py/"
+
+    def unpickle(file, label_key="labels"):
+        with open(file, 'rb') as fo:
+            dict = pickle.load(fo, encoding='bytes')
+            # Decode UTF-8
+            d_decoded = {}
+            for key, value in dict.items():
+                d_decoded[key.decode("utf8")] = value
+            d = d_decoded
+        data = d["data"]
+        labels = d[label_key]
+
+        data = data.reshape(data.shape[0], 3, 32, 32)
+        labels = np.reshape(labels, (len(labels), 1))
+        return data, labels
+    
+    def extract(filename):
+        file = tarfile.open(filename)
+        file.extract(cifar_dir + "data_batch_1", _DATA)
+        file.extract(cifar_dir + "data_batch_2", _DATA)
+        file.extract(cifar_dir + "data_batch_3", _DATA)
+        file.extract(cifar_dir + "data_batch_4", _DATA)
+        file.extract(cifar_dir + "data_batch_5", _DATA)
+        file.extract(cifar_dir + "test_batch", _DATA)
+        file.close()
+    
+    filenames = [
+        "cifar-10-python.tar.gz",
+    ]
+
+    for filename in filenames:
+        _download(base_url + filename, filename)
+
+    extract(path.join(_DATA, "cifar-10-python.tar.gz"))
+
+    num_train_samples = 50000
+    train_images = np.empty((num_train_samples, 3, 32, 32), dtype="float32")
+    train_labels = np.empty((num_train_samples, 1), dtype="float32")
+    for i in range(1, 6):
+        # Use broadcasting to merge the 5 training sets into one big set
+        (
+            train_images[(i - 1) * 10000 : i * 10000, :, :, :],
+            train_labels[(i - 1) * 10000 : i * 10000],
+        ) = unpickle(path.join(_DATA + cifar_dir, "data_batch_" + str(i)))
+
+    test_images, test_labels = unpickle(path.join(_DATA + cifar_dir, "test_batch"))
+
+    # Change dtype to float32 as to not conflict with convolutional weight dtype of float32
+    test_images = test_images.astype('float32')
+    test_labels = test_labels.astype('float32')
+
+    # Transpose the np arrays so the channel is the last dimension
+    train_images = train_images.transpose(0, 2, 3, 1)
+    test_images = test_images.transpose(0, 2, 3, 1)
+
+    # Flatten the lists and convert to one hot encoding. Not entirely sure why there is a useless wrapping list. Possibly a bug in my loading sequence.
+    train_labels = _partial_flatten(_one_hot(train_labels, 10))
+    test_labels = _partial_flatten(_one_hot(test_labels, 10))
+    
+    train_images = train_images / np.float32(255.0)
+    test_images = test_images / np.float32(255.0)
+
+    print("Finished loading CIFAR-10 Dataset")
 
     return train_images, train_labels, test_images, test_labels
