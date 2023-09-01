@@ -65,6 +65,8 @@ def mnist_raw():
 
 def mnist(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
+    print("Loading MNIST Dataset")
+
     train_images, train_labels, test_images, test_labels = mnist_raw()
 
     train_images = _partial_flatten(train_images) / np.float32(255.0)
@@ -76,6 +78,8 @@ def mnist(permute_train=False):
         perm = np.random.RandomState(0).permutation(train_images.shape[0])
         train_images = train_images[perm]
         train_labels = train_labels[perm]
+
+    print("Finished loading MNIST Dataset")
 
     return train_images, train_labels, test_images, test_labels
 
@@ -114,6 +118,8 @@ def fashion_mnist_raw():
 
 def fashion_mnist(permute_train=False):
     """Download, parse and process MNIST data to unit scale and one-hot labels."""
+    print("Loading FASHION MNIST Dataset")
+
     train_images, train_labels, test_images, test_labels = fashion_mnist_raw()
 
     train_images = _partial_flatten(train_images) / np.float32(255.0)
@@ -125,13 +131,15 @@ def fashion_mnist(permute_train=False):
         perm = np.random.RandomState(0).permutation(train_images.shape[0])
         train_images = train_images[perm]
         train_labels = train_labels[perm]
+    
+    print("Finished loading FASHION MNIST Dataset")
 
     return train_images, train_labels, test_images, test_labels
 
 # https://www.cs.toronto.edu/~kriz/cifar.html
 # https://github.com/keras-team/keras/blob/v2.13.1/keras/datasets/cifar10.py#L29-L115
 def cifar10():
-    """Download and parse the raw fashion MNIST dataset."""
+    """Download and parse the raw CIFAR-10 dataset."""
     print("Loading CIFAR-10 Dataset")
 
     base_url = "https://www.cs.toronto.edu/~kriz/"

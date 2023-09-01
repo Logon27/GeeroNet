@@ -17,14 +17,6 @@ import matplotlib.pyplot as plt
 
 from nn import *
 
-# The loss function produces a single error value representing the effiency of the network. 
-# The gradient of the error with respect to the output of the final layer is just...
-# the derivative of the loss function applied elementwise to the output (prediction) array of the network.
-
-# The gradient of the error with respect to the input of the last layer is equivalent to...
-# the gradient of the error with respect to the output of the second to last layer.
-# Which means by using automatic differentiation (the chain rule) to calculate the gradient of the error with respect to the input...
-# we can calculate all the gradients of the network by just knowning the error function.
 def loss(params, batch):
     inputs, targets = batch
     predictions = net_predict(params, inputs)
@@ -42,8 +34,9 @@ net_init, net_predict = model_decorator(
         MaxPool((2, 2), strides=(2, 2)),
         Conv(32, (3, 3), padding='SAME'), Elu,
         MaxPool((2, 2), strides=(2, 2)),
+        Conv(32, (3, 3), padding='SAME'), Elu,
+        MaxPool((2, 2), strides=(2, 2)),
         Flatten(),
-        Dense(120), Elu,
         Dense(84), Elu,
         Dense(10), LogSoftmax,
     )
@@ -53,8 +46,8 @@ def main():
     rng = random.PRNGKey(0)
 
     step_size = 0.001
-    num_epochs = 20
-    batch_size = 32
+    num_epochs = 25
+    batch_size = 64
     momentum_mass = 0.9
     # IMPORTANT
     # If your network is larger and you test against the entire dataset for the accuracy.
@@ -65,9 +58,6 @@ def main():
     num_train = train_images.shape[0]
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
-
-    # train_images = jnp.reshape(train_images, (train_images.shape[0], 28, 28, 3))
-    # test_images = jnp.reshape(test_images, (test_images.shape[0], 28, 28, 3))
 
     def data_stream():
         rng = npr.RandomState(0)
