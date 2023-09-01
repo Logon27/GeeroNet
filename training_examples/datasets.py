@@ -7,6 +7,8 @@ from os import path
 import struct
 import urllib.request
 import numpy as np
+import pickle
+import tarfile
 
 _DATA = "/tmp/jax_example_data/"
 
@@ -16,8 +18,9 @@ def _download(url, filename):
         os.makedirs(_DATA)
     out_file = path.join(_DATA, filename)
     if not path.isfile(out_file):
+        print(f"Downloading {url} to {_DATA}")
         urllib.request.urlretrieve(url, out_file)
-        print(f"downloaded {url} to {_DATA}")
+        print(f"Finished downloading {url} to {_DATA}")
 
 def _partial_flatten(x):
     """Flatten all but the first dimension of an ndarray."""
@@ -44,12 +47,13 @@ def mnist_raw():
                 num_data, rows, cols
             )
 
-    for filename in [
+    filenames = [
         "train-images-idx3-ubyte.gz",
         "train-labels-idx1-ubyte.gz",
         "t10k-images-idx3-ubyte.gz",
         "t10k-labels-idx1-ubyte.gz",
-    ]:
+    ]
+    for filename in filenames:
         _download(base_url + filename, filename)
 
     train_images = parse_images(path.join(_DATA, "train-images-idx3-ubyte.gz"))
@@ -90,13 +94,15 @@ def fashion_mnist_raw():
             return np.array(array.array("B", fh.read()), dtype=np.uint8).reshape(
                 num_data, rows, cols
             )
-
-    for filename in [
+    
+    filenames = [
         "train-images-idx3-ubyte.gz",
         "train-labels-idx1-ubyte.gz",
         "t10k-images-idx3-ubyte.gz",
         "t10k-labels-idx1-ubyte.gz",
-    ]:
+    ]
+
+    for filename in filenames:
         _download(base_url + filename, "fashion-" + filename)
 
     train_images = parse_images(path.join(_DATA, "fashion-train-images-idx3-ubyte.gz"))
@@ -119,5 +125,60 @@ def fashion_mnist(permute_train=False):
         perm = np.random.RandomState(0).permutation(train_images.shape[0])
         train_images = train_images[perm]
         train_labels = train_labels[perm]
+
+    return train_images, train_labels, test_images, test_labels
+
+# https://www.cs.toronto.edu/~kriz/cifar.html
+def cifar10_raw():
+    """Download and parse the raw fashion MNIST dataset."""
+    base_url = "https://www.cs.toronto.edu/~kriz/"
+    cifar_dir = "cifar-10-batches-py/"
+
+    def unpickle(file, label_key="labels"):
+        with open(file, 'rb') as fo:
+            dict = pickle.load(fo, encoding='bytes')
+            # Decode UTF-8
+            d_decoded = {}
+            for key, value in dict.items():
+                d_decoded[key.decode("utf8")] = value
+            d = d_decoded
+        data = d["data"]
+        labels = d[label_key]
+
+        data = data.reshape(data.shape[0], 3, 32, 32)
+        labels = np.reshape(labels, (len(labels), 1))
+        return data, labels
+    
+    def extract(filename):
+        file = tarfile.open(filename)
+        file.extract(cifar_dir + "data_batch_1", _DATA)
+        file.extract(cifar_dir + "data_batch_2", _DATA)
+        file.extract(cifar_dir + "data_batch_3", _DATA)
+        file.extract(cifar_dir + "data_batch_4", _DATA)
+        file.extract(cifar_dir + "data_batch_5", _DATA)
+        file.extract(cifar_dir + "test_batch", _DATA)
+        file.close()
+    
+    filenames = [
+        "cifar-10-python.tar.gz",
+    ]
+
+    for filename in filenames:
+        _download(base_url + filename, filename)
+
+    extract(path.join(_DATA, "cifar-10-python.tar.gz"))
+
+    num_train_samples = 50000
+    train_images = np.empty((num_train_samples, 3, 32, 32), dtype="uint8")
+    train_labels = np.empty((num_train_samples, 1), dtype="uint8")
+    for i in range(1, 6):
+        # Use broadcasting to merge the 5 training sets into one big set
+        (
+            train_images[(i - 1) * 10000 : i * 10000, :, :, :],
+            train_labels[(i - 1) * 10000 : i * 10000],
+        ) = unpickle(path.join(_DATA + cifar_dir, "data_batch_" + str(i)))
+    # print(train_images.shape)
+    # print(train_labels.shape)
+    test_images, test_labels = unpickle(path.join(_DATA + cifar_dir, "test_batch"))
 
     return train_images, train_labels, test_images, test_labels
