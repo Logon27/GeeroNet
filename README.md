@@ -1,6 +1,6 @@
 # Geero
 
-Geero is a simple neural network library built using [Google Jax](https://github.com/google/jax). This library is mainly for educational purposes and to experiment with deep learning methods.
+Geero is a simple neural network library built using [Google Jax](https://github.com/google/jax) and inspired by [Stax](https://jax.readthedocs.io/en/latest/jax.example_libraries.stax.html). This library is mainly for educational purposes and to experiment with deep learning methods.
 
 ## Setup and Installation
 
@@ -49,6 +49,17 @@ sudo apt-get install python3-tk
 ### GPU Setup
 
 By default the requirements.txt file will install jax for cpu. However, to take advantage of the gpu you must install both cuda and jax dependencies. The easiest way to install these dependencies is through pip. Instructions can be found in the [README](https://github.com/google/jax#pip-installation-gpu-cuda-installed-via-pip-easier) of the [jax repo](https://github.com/google/jax). Once these dependencies are installed, the gpu should automatically be used when using any Jax or Geero functionality.
+
+---
+
+## Geero Training Examples
+| File | Dataset | Description |
+| ------------- | ------------- | ----- |
+| [mnist.py](./training_examples/mnist.py) | MNIST | A classic MNIST training example utilizing a neural network with Dense layers |
+| [mnist_conv.py](./training_examples/mnist_conv.py) | MNIST | MNIST training example that utilizes a convolutional neural network |
+| [mnist_aug.py](./training_examples/mnist_aug.py) | MNIST | MNIST training example that utilizes data augmentation |
+| [mnist_fcnn.py](./training_examples/mnist_fcnn.py) | MNIST | MNIST training example that utilizes a fully convolutional neural network |
+| [fashion_mnist.py](./training_examples/fashion_mnist.py) | FASHION MNIST | FASHION MNIST training example that utilizes a convolutional neural network |
 
 ---
 

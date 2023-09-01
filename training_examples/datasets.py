@@ -129,8 +129,11 @@ def fashion_mnist(permute_train=False):
     return train_images, train_labels, test_images, test_labels
 
 # https://www.cs.toronto.edu/~kriz/cifar.html
-def cifar10_raw():
+# https://github.com/keras-team/keras/blob/v2.13.1/keras/datasets/cifar10.py#L29-L115
+def cifar10():
     """Download and parse the raw fashion MNIST dataset."""
+    print("Loading CIFAR-10 Dataset")
+
     base_url = "https://www.cs.toronto.edu/~kriz/"
     cifar_dir = "cifar-10-batches-py/"
 
@@ -169,16 +172,32 @@ def cifar10_raw():
     extract(path.join(_DATA, "cifar-10-python.tar.gz"))
 
     num_train_samples = 50000
-    train_images = np.empty((num_train_samples, 3, 32, 32), dtype="uint8")
-    train_labels = np.empty((num_train_samples, 1), dtype="uint8")
+    train_images = np.empty((num_train_samples, 3, 32, 32), dtype="float32")
+    train_labels = np.empty((num_train_samples, 1), dtype="float32")
     for i in range(1, 6):
         # Use broadcasting to merge the 5 training sets into one big set
         (
             train_images[(i - 1) * 10000 : i * 10000, :, :, :],
             train_labels[(i - 1) * 10000 : i * 10000],
         ) = unpickle(path.join(_DATA + cifar_dir, "data_batch_" + str(i)))
-    # print(train_images.shape)
-    # print(train_labels.shape)
+
     test_images, test_labels = unpickle(path.join(_DATA + cifar_dir, "test_batch"))
+
+    # Change dtype to float32 as to not conflict with convolutional weight dtype of float32
+    test_images = test_images.astype('float32')
+    test_labels = test_labels.astype('float32')
+
+    # Transpose the np arrays so the channel is the last dimension
+    train_images = train_images.transpose(0, 2, 3, 1)
+    test_images = test_images.transpose(0, 2, 3, 1)
+
+    # Flatten the lists and convert to one hot encoding. Not entirely sure why there is a useless wrapping list. Possibly a bug in my loading sequence.
+    train_labels = _partial_flatten(_one_hot(train_labels, 10))
+    test_labels = _partial_flatten(_one_hot(test_labels, 10))
+    
+    train_images = train_images / np.float32(255.0)
+    test_images = test_images / np.float32(255.0)
+
+    print("Finished loading CIFAR-10 Dataset")
 
     return train_images, train_labels, test_images, test_labels
