@@ -68,6 +68,10 @@ By default the requirements.txt file will install jax for cpu. However, to take 
 
 Please see [env_vars](env_vars.md), for a list of available environment variables and logging levels.
 
+## Debug Decorators
+
+Please see [decorators](decorators.md), for a list of currently implemented decorators.
+
 ## Docstring Format (Google)
 
 This project utilizes the Google docstring format. It is recommended that this is configured with the autoDocstring VSCode extension.

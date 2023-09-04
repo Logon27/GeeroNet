@@ -5,7 +5,7 @@ import jax
 
 def debug_decorator(pooling_debug, func_name):
     """
-    Decorator to wrap the Convolutional layer.
+    Decorator to wrap the Pooling layers.
     """
     @functools.wraps(pooling_debug)
     def Pooling(*args, **kwargs):
