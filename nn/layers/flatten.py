@@ -20,7 +20,6 @@ import jax.numpy as jnp
 from nn.decorators.flatten_decorator import debug_decorator
 
 
-@debug_decorator
 def Flatten():
   """Layer construction function for flattening all but the leading dim."""
   def init_fun(rng, input_shape):
@@ -29,3 +28,4 @@ def Flatten():
   def apply_fun(params, inputs, **kwargs):
     return jnp.reshape(inputs, (inputs.shape[0], -1))
   return init_fun, apply_fun
+Flatten = debug_decorator(Flatten)()

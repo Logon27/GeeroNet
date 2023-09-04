@@ -14,6 +14,7 @@
 
 from jax import lax
 import jax.numpy as jnp
+from nn.decorators.pooling_decorator import debug_decorator
 
 
 def _pooling_layer(reducer, init_val, rescaler=None):
@@ -35,6 +36,9 @@ def _pooling_layer(reducer, init_val, rescaler=None):
             padding_vals = lax.padtype_to_pads(input_shape, window_shape, strides, padding)
             ones = (1,) * len(window_shape)
             out_shape = lax.reduce_window_shape_tuple(input_shape, window_shape, strides, padding_vals, ones, ones)
+            # Converting the 0 in the output shape to -1 for consistency
+            if out_shape[0] == 0:
+                out_shape = (-1, *out_shape[1:])
             return out_shape, ()
         def apply_fun(params, inputs, **kwargs):
             out = lax.reduce_window(inputs, init_val, reducer, window_shape, strides, padding)
@@ -61,5 +65,10 @@ def _normalize_by_window_size(dims, strides, padding):
     return rescale
 
 MaxPool = _pooling_layer(lax.max, -jnp.inf)
+MaxPool = debug_decorator(MaxPool, "MaxPool")
+
 SumPool = _pooling_layer(lax.add, 0.)
+SumPool = debug_decorator(SumPool, "SumPool")
+
 AvgPool = _pooling_layer(lax.add, 0., _normalize_by_window_size)
+AvgPool = debug_decorator(AvgPool, "AvgPool")

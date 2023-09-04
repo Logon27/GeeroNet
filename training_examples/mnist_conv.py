@@ -40,7 +40,7 @@ net_init, net_predict = model_decorator(
     serial(
         Conv(6, (5, 5), padding='SAME'), Elu,
         Conv(16, (3, 3), padding='SAME'), Elu,
-        Flatten(),
+        Flatten,
         Dense(120), Elu,
         Dense(84), Elu,
         Dense(10), LogSoftmax,

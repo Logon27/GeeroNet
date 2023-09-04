@@ -1,6 +1,3 @@
-from jax.typing import ArrayLike
-from jax.random import PRNGKey
-from nn.typing import Params
 import functools
 import logging
 import jax

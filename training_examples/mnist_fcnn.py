@@ -44,7 +44,8 @@ net_init, net_predict = model_decorator(
         Conv(16, (5, 5), padding='SAME'), Relu,
         Conv(8, (3, 3), padding='SAME'), Relu,
         Conv(10, (22, 22), padding='SAME'),
-        Flatten(), LogSoftmax,
+        Flatten,
+        LogSoftmax,
     )
 )
 

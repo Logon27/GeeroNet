@@ -42,7 +42,7 @@ net_init, net_predict = model_decorator(
         MaxPool((2, 2), strides=(2, 2)),
         Conv(32, (3, 3), padding='SAME'), Elu,
         MaxPool((2, 2), strides=(2, 2)),
-        Flatten(),
+        Flatten,
         Dense(120), Elu,
         Dense(84), Elu,
         Dense(10), LogSoftmax,
