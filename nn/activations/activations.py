@@ -50,15 +50,3 @@ Elu = elementwise(elu)
 LeakyRelu = elementwise(leaky_relu)
 Selu = elementwise(selu)
 Gelu = elementwise(gelu)
-
-# Tanh = debug_decorator(Tanh, "Tanh")()
-# Relu = debug_decorator(Relu, "Relu")()
-# Exp = 
-# LogSoftmax = 
-# Softmax = 
-# Softplus = 
-# Sigmoid = 
-# Elu = 
-# LeakyRelu = 
-# Selu = 
-# Gelu = 

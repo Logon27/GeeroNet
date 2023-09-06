@@ -199,7 +199,7 @@ def cifar10():
     train_images = train_images.transpose(0, 2, 3, 1)
     test_images = test_images.transpose(0, 2, 3, 1)
 
-    # Flatten the lists and convert to one hot encoding. Not entirely sure why there is a useless wrapping list. Possibly a bug in my loading sequence.
+    # Flatten the lists and convert to one hot encoding. Only necessary because the one hot encoding produces a useless dimension.
     train_labels = _partial_flatten(_one_hot(train_labels, 10))
     test_labels = _partial_flatten(_one_hot(test_labels, 10))
     

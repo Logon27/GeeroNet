@@ -65,10 +65,9 @@ def _normalize_by_window_size(dims, strides, padding):
     return rescale
 
 MaxPool = _pooling_layer(lax.max, -jnp.inf)
-MaxPool = debug_decorator(MaxPool, "MaxPool")
-
 SumPool = _pooling_layer(lax.add, 0.)
-SumPool = debug_decorator(SumPool, "SumPool")
-
 AvgPool = _pooling_layer(lax.add, 0., _normalize_by_window_size)
+
+MaxPool = debug_decorator(MaxPool, "MaxPool")
+SumPool = debug_decorator(SumPool, "SumPool")
 AvgPool = debug_decorator(AvgPool, "AvgPool")
