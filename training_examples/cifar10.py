@@ -7,15 +7,13 @@ import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
-
 import numpy.random as npr
-
 import jax.numpy as jnp
 from jax import jit, grad, random
 import datasets as datasets
 import matplotlib.pyplot as plt
-
 from nn import *
+
 
 def loss(params, batch):
     inputs, targets = batch
@@ -51,7 +49,7 @@ def main():
     momentum_mass = 0.9
     # IMPORTANT
     # If your network is larger and you test against the entire dataset for the accuracy.
-    # Then you will run out or RAM and get a std::bad_alloc error.
+    # Then you will run out of RAM and get a std::bad_alloc error.
     accuracy_batch_size = 1000
 
     train_images, train_labels, test_images, test_labels = datasets.cifar10()
@@ -59,17 +57,17 @@ def main():
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
 
-    def data_stream():
-        rng = npr.RandomState(0)
+    def data_stream(rng):
         while True:
-            perm = rng.permutation(num_train)
+            rng, subkey = random.split(rng)
+            perm = random.permutation(subkey, num_train)
             for i in range(num_batches):
                 # batch_idx is a list of indices.
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
                 yield train_images[batch_idx], train_labels[batch_idx]
 
-    batches = data_stream()
+    batches = data_stream(rng)
 
     opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
 
@@ -84,7 +82,7 @@ def main():
 
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
-        for _ in range(num_batches):
+        for batch in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
 
         params = get_params(opt_state)

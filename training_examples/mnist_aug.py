@@ -1,4 +1,4 @@
-"""A basic MNIST example with data augmentation
+"""A basic MNIST example with data augmentation. This example is still a work in progress.
 
 Performance is worse due to the data augementation."""
 import sys
@@ -9,26 +9,16 @@ import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
-
 import numpy.random as npr
-
 import jax.numpy as jnp
 from jax import jit, grad, random
 import datasets as datasets
 import matplotlib.pyplot as plt
 import jax
 from functools import partial
-
 from nn import *
 
-# The loss function produces a single error value representing the effiency of the network. 
-# The gradient of the error with respect to the output of the final layer is just...
-# the derivative of the loss function applied elementwise to the output (prediction) array of the network.
 
-# The gradient of the error with respect to the input of the last layer is equivalent to...
-# the gradient of the error with respect to the output of the second to last layer.
-# Which means by using automatic differentiation (the chain rule) to calculate the gradient of the error with respect to the input...
-# we can calculate all the gradients of the network by just knowning the error function.
 def loss(params, batch):
     inputs, targets = batch
     predictions = net_predict(params, inputs)
@@ -104,7 +94,6 @@ def main():
     batches = data_stream()
 
     opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
-    # opt_init, opt_update, get_params = sgd(step_size)
 
     @jit
     def update(i, opt_state, batch):
@@ -117,7 +106,7 @@ def main():
 
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
-        for _ in range(num_batches):
+        for batch in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
 
         params = get_params(opt_state)

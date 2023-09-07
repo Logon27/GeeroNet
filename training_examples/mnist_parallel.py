@@ -1,4 +1,4 @@
-"""A basic MNIST example using JAX"""
+"""A basic MNIST example that displays how to utilize parallel layers"""
 import sys
 sys.path.append("..")
 
@@ -7,24 +7,14 @@ import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
-
 import numpy.random as npr
-
 import jax.numpy as jnp
 from jax import jit, grad, random
 import datasets as datasets
 import matplotlib.pyplot as plt
-
 from nn import *
 
-# The loss function produces a single error value representing the effiency of the network. 
-# The gradient of the error with respect to the output of the final layer is just...
-# the derivative of the loss function applied elementwise to the output (prediction) array of the network.
 
-# The gradient of the error with respect to the input of the last layer is equivalent to...
-# the gradient of the error with respect to the output of the second to last layer.
-# Which means by using automatic differentiation (the chain rule) to calculate the gradient of the error with respect to the input...
-# we can calculate all the gradients of the network by just knowning the error function.
 def loss(params, batch):
     inputs, targets = batch
     predictions = net_predict(params, inputs)
@@ -62,17 +52,17 @@ def main():
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
 
-    def data_stream():
-        rng = npr.RandomState(0)
+    def data_stream(rng):
         while True:
-            perm = rng.permutation(num_train)
+            rng, subkey = random.split(rng)
+            perm = random.permutation(subkey, num_train)
             for i in range(num_batches):
                 # batch_idx is a list of indices.
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
                 yield train_images[batch_idx], train_labels[batch_idx]
 
-    batches = data_stream()
+    batches = data_stream(rng)
 
     opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
 
@@ -87,7 +77,7 @@ def main():
 
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
-        for _ in range(num_batches):
+        for batch in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
 
         params = get_params(opt_state)

@@ -7,14 +7,11 @@ import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
-
 import numpy.random as npr
-
 import jax.numpy as jnp
 from jax import jit, grad, random
 import datasets as datasets
 import matplotlib.pyplot as plt
-
 from nn import *
 
 # The loss function produces a single error value representing the effiency of the network. 
@@ -24,13 +21,15 @@ from nn import *
 # The gradient of the error with respect to the input of the last layer is equivalent to...
 # the gradient of the error with respect to the output of the second to last layer.
 # Which means by using automatic differentiation (the chain rule) to calculate the gradient of the error with respect to the input...
-# we can calculate all the gradients of the network by just knowning the error function.
+# we can calculate all the gradients of the network by just knowing the error function.
 def loss(params, batch):
+    """Calculates the loss of the network as a single value / float"""
     inputs, targets = batch
     predictions = net_predict(params, inputs)
     return categorical_cross_entropy(predictions, targets)
 
 def accuracy(params, batch):
+    """Calculates accuracy (or number of correct guesses) for a given batch"""
     inputs, targets = batch
     target_class = jnp.argmax(targets, axis=1)
     predicted_class = jnp.argmax(net_predict(params, inputs), axis=1)
@@ -60,17 +59,17 @@ def main():
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
 
-    def data_stream():
-        rng = npr.RandomState(0)
+    def data_stream(rng):
         while True:
-            perm = rng.permutation(num_train)
+            rng, subkey = random.split(rng)
+            perm = random.permutation(subkey, num_train)
             for i in range(num_batches):
                 # batch_idx is a list of indices.
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
                 yield train_images[batch_idx], train_labels[batch_idx]
 
-    batches = data_stream()
+    batches = data_stream(rng)
 
     opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
 
@@ -85,7 +84,7 @@ def main():
 
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
-        for _ in range(num_batches):
+        for batch in range(num_batches):
             opt_state = update(next(itercount), opt_state, next(batches))
 
         params = get_params(opt_state)
@@ -98,6 +97,7 @@ def main():
     visual_debug(get_params(opt_state), test_images, test_labels)
 
 def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, columns=10):
+    """Visual displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
     fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
     fig.canvas.manager.set_window_title('Network Predictions')
     # "i" represents the test set starting index.
