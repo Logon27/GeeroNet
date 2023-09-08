@@ -7,7 +7,6 @@ import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
-import numpy.random as npr
 import jax.numpy as jnp
 from jax import jit, grad, random
 import datasets as datasets
@@ -97,7 +96,9 @@ def main():
     visual_debug(get_params(opt_state), test_images, test_labels)
 
 def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, columns=10):
-    # Visual Debug After Training
+    """Visual displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
+    print("Displaying Visual Debug...")
+
     fashion_dict = {
         0: "T-shirt / Top",
         1: "Trouser",

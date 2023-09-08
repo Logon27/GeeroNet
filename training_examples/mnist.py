@@ -7,7 +7,6 @@ import training_examples.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
-import numpy.random as npr
 import jax.numpy as jnp
 from jax import jit, grad, random
 import datasets as datasets
@@ -98,6 +97,7 @@ def main():
 
 def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, columns=10):
     """Visual displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
+    print("Displaying Visual Debug...")
     fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
     fig.canvas.manager.set_window_title('Network Predictions')
     # "i" represents the test set starting index.
