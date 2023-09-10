@@ -57,7 +57,7 @@ By default the requirements.txt file will install jax for cpu. However, to take 
 | ------------- | ------------- | ----- |
 | [mnist.py](./training_examples/mnist.py) | MNIST | A classic MNIST training example utilizing a neural network with Dense layers |
 | [mnist_conv.py](./training_examples/mnist_conv.py) | MNIST | MNIST training example that utilizes a convolutional neural network |
-| [mnist_aug.py](./training_examples/mnist_aug.py) | MNIST | (Still a work in progress) MNIST training example that utilizes data augmentation. |
+| [mnist_aug.py](./training_examples/mnist_aug.py) | MNIST | MNIST training example that utilizes data augmentation. |
 | [mnist_fcnn.py](./training_examples/mnist_fcnn.py) | MNIST | MNIST training example that utilizes a fully convolutional neural network |
 | [fashion_mnist.py](./training_examples/fashion_mnist.py) | FASHION MNIST | FASHION MNIST training example that utilizes a convolutional neural network |
 | [cifar10.py](./training_examples/cifar10.py) | CIFAR-10 | CIFAR-10 training example that utilizes a convolutional neural network |

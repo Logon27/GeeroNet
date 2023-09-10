@@ -1,18 +1,19 @@
-"""A basic MNIST example with data augmentation. This example is still a work in progress.
+"""A basic MNIST example with data augmentation.
 
-Performance is worse due to the data augementation."""
+Computational performance is worse due to the data augementation."""
 import sys
 sys.path.append("..")
 
 # Import the TQDM config for cleaner progress bars
-import training_examples.tqdm_config # pyright: ignore
+import training_examples.helpers.tqdm_config # pyright: ignore
 from tqdm import trange
 
 import itertools
 import jax.numpy as jnp
 from jax import jit, grad, random
-import datasets as datasets
+import training_examples.helpers.datasets as datasets
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Button
 import jax
 from functools import partial
 from nn import *
@@ -125,26 +126,52 @@ def main():
     visual_debug(get_params(opt_state), test_images, test_labels, rng=rng)
 
 def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, columns=10, **kwargs):
-    """Visual displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
+    """Visually displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
     print("Displaying Visual Debug...")
     fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
+    # Set a bottom margin to space out the buttons from the figures
+    fig.subplots_adjust(bottom=0.15)
     fig.canvas.manager.set_window_title('Network Predictions')
-    rng = kwargs['rng']
-    # "i" represents the test set starting index.
-    i = starting_index
-    for j in range(rows):
-        for k in range(columns):
-            rng, subkey = random.split(rng)
-            augmented_image = augment(subkey, test_images[i].reshape(1, *test_images[i].shape))
-            output = net_predict(params, augmented_image)
-            prediction = int(jnp.argmax(output, axis=1)[0])
-            target = int(jnp.argmax(test_labels[i], axis=0))
-            prediction_color = "green" if prediction == target else "red"
-            axes[j][k].set_title(prediction, color=prediction_color)
-            axes[j][k].imshow(augmented_image.reshape(28, 28), cmap='gray')
-            axes[j][k].get_xaxis().set_visible(False)
-            axes[j][k].get_yaxis().set_visible(False)
-            i += 1
+    class Index:
+        def __init__(self, starting_index):
+            self.starting_index = starting_index
+        
+        def render_images(self):
+            rng = kwargs['rng']
+            i = self.starting_index
+            for j in range(rows):
+                for k in range(columns):
+                    rng, subkey = random.split(rng)
+                    augmented_image = augment(subkey, test_images[i].reshape(1, *test_images[i].shape))
+                    output = net_predict(params, augmented_image)
+                    prediction = int(jnp.argmax(output, axis=1)[0])
+                    target = int(jnp.argmax(test_labels[i], axis=0))
+                    prediction_color = "green" if prediction == target else "red"
+                    axes[j][k].set_title(prediction, color=prediction_color)
+                    axes[j][k].imshow(augmented_image.reshape(28, 28), cmap='gray')
+                    axes[j][k].get_xaxis().set_visible(False)
+                    axes[j][k].get_yaxis().set_visible(False)
+                    i += 1
+            plt.draw()
+            fig.suptitle("Displaying Images: {} - {}".format(self.starting_index, (self.starting_index + (rows * columns))), fontsize=14)
+        
+        def next(self, event):
+            self.starting_index += (rows * columns)
+            self.render_images()
+        
+        def prev(self, event):
+            self.starting_index -= (rows * columns)
+            self.render_images()
+
+    callback = Index(starting_index)
+    axprev = fig.add_axes([0.7, 0.05, 0.1, 0.075])
+    axnext = fig.add_axes([0.81, 0.05, 0.1, 0.075])
+    bnext = Button(axnext, 'Next', hovercolor="green")
+    bnext.on_clicked(callback.next)
+    bprev = Button(axprev, 'Previous', hovercolor="green")
+    bprev.on_clicked(callback.prev)
+    # Run an initial render before buttons are pressed
+    callback.render_images()
     plt.show()
 
 if __name__ == "__main__":
