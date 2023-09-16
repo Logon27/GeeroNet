@@ -16,8 +16,8 @@ from nn.decorators.identity_decorator import debug_decorator
 
 
 def Identity():
-  """Layer construction function for an identity layer."""
-  init_fun = lambda rng, input_shape: (input_shape, ())
-  apply_fun = lambda params, inputs, **kwargs: inputs
-  return init_fun, apply_fun
+    """Layer construction function for an identity layer."""
+    init_fun = lambda rng, input_shape: (input_shape, ())
+    apply_fun = lambda params, inputs, **kwargs: inputs
+    return init_fun, apply_fun
 Identity = debug_decorator(Identity)()

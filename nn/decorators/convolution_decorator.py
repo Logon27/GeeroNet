@@ -1,15 +1,24 @@
 import functools
 import logging
 import jax
+import sys
+from typing import Callable, TypeVar
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
 
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 # When running against the fashion set some shape values return 0 for batch size. I believe this is due to max pooling.
-def debug_decorator(convolution_debug):
+def debug_decorator(convolution_debug: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator to wrap the Convolutional layer.
     """
     @functools.wraps(convolution_debug)
-    def GeneralConv(*args, **kwargs):
+    def GeneralConv(*args: P.args, **kwargs: P.kwargs) -> R:
         if logging.getLevelName(logging.root.level) == "INFO2":
             init_fun_debug, apply_fun_debug = convolution_debug(*args, **kwargs)
 

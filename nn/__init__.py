@@ -7,6 +7,7 @@ from .decorators.model_decorator import model_decorator
 # Layers
 from .layers.dense import Dense
 from .layers.convolution import Conv
+from .layers.convolution import GeneralConv
 from .layers.flatten import Flatten
 from .layers.reshape import Reshape
 from .layers.dropout import Dropout

@@ -22,27 +22,32 @@ from nn.decorators.dropout_decorator import debug_decorator
 # https://github.com/google/jax/issues/16218
 @debug_decorator
 def Dropout(drop_probability=0.25):
-  """Layer construction function for a dropout layer with given rate.
-  
-  The probability parmeter is the drop probability.
-  If you want a success rate of 75% then you would set a probability of 0.25 or a 25% drop rate.
-  """
-  def init_fun(rng, input_shape):
-    return input_shape, ()
-  def apply_fun(params, inputs, **kwargs):
-    rng = kwargs.get('rng', None)
-    if rng is None:
-      msg = ("Dropout layer requires apply_fun to be called with a PRNG key "
-             "argument. That is, instead of `apply_fun(params, inputs)`, call "
-             "it like `apply_fun(params, inputs, rng)` where `rng` is a "
-             "jax.random.PRNGKey value.")
-      raise ValueError(msg)
-    mode = kwargs.get('mode', 'train')
-    if mode == 'train':
-      # Invert the probability because the implementation operates off the keep rate.
-      rate = 1 - drop_probability
-      keep = random.bernoulli(rng, rate, inputs.shape)
-      return jnp.where(keep, inputs, 0)
-    else:
-      return inputs
-  return init_fun, apply_fun
+    """Layer construction function for a dropout layer with given rate.
+
+    The probability parmeter is the drop probability.
+    If you want a success rate of 75% then you would set a probability of 0.25 or a 25% drop rate.
+    """
+
+    def init_fun(rng, input_shape):
+        return input_shape, ()
+
+    def apply_fun(params, inputs, **kwargs):
+        rng = kwargs.get("rng", None)
+        if rng is None:
+            msg = (
+                "Dropout layer requires apply_fun to be called with a PRNG key "
+                "argument. That is, instead of `apply_fun(params, inputs)`, call "
+                "it like `apply_fun(params, inputs, rng)` where `rng` is a "
+                "jax.random.PRNGKey value."
+            )
+            raise ValueError(msg)
+        mode = kwargs.get("mode", "train")
+        if mode == "train":
+            # Invert the probability because the implementation operates off the keep rate.
+            rate = 1 - drop_probability
+            keep = random.bernoulli(rng, rate, inputs.shape)
+            return jnp.where(keep, inputs, 0)
+        else:
+            return inputs
+
+    return init_fun, apply_fun

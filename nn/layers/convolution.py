@@ -39,36 +39,36 @@ from nn.decorators.convolution_decorator import debug_decorator
 
 # https://jax.readthedocs.io/en/latest/notebooks/convolutions.html
 
-@debug_decorator
 def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padding='VALID', weight_init=None, bias_init=normal(1e-6)):
-  """Layer construction function for a general convolution layer."""
-  lhs_spec, rhs_spec, out_spec = dimension_numbers
-  one = (1,) * len(kernel_shape)
-  strides = strides or one
-  weight_init = weight_init or glorot_normal(rhs_spec.index('I'), rhs_spec.index('O'))
+    """Layer construction function for a general convolution layer."""
+    lhs_spec, rhs_spec, out_spec = dimension_numbers
+    one = (1,) * len(kernel_shape)
+    strides = strides or one
+    weight_init = weight_init or glorot_normal(rhs_spec.index('I'), rhs_spec.index('O'))
 
-  # The init_fun is not dependent on the batch size, input height, or input width. Only the number of input channels.
-  # However, when mixing layers like Dense -> Reshape -> Conv. Then the input height and width must be known.
-  # Because the Reshape operation cannot have a wildcard in 3 dimensions, only 1.
-  def init_fun(rng, input_shape):
-    kernel_shape_iter = iter(kernel_shape)
-    filter_shape = [num_filters if c == 'O' else
-                    input_shape[lhs_spec.index('C')] if c == 'I' else
-                    next(kernel_shape_iter) for c in rhs_spec]
-    output_shape = lax.conv_general_shape_tuple(input_shape, filter_shape, strides, padding, dimension_numbers)
-    bias_shape = [num_filters if c == 'C' else 1 for c in out_spec]
-    k1, k2 = random.split(rng)
-    weights, bias = weight_init(k1, filter_shape), bias_init(k2, bias_shape)
-    return output_shape, (weights, bias)
+    # The init_fun is not dependent on the batch size, input height, or input width. Only the number of input channels.
+    # However, when mixing layers like Dense -> Reshape -> Conv. Then the input height and width must be known.
+    # Because the Reshape operation cannot have a wildcard in 3 dimensions, only 1.
+    def init_fun(rng, input_shape):
+        kernel_shape_iter = iter(kernel_shape)
+        filter_shape = [num_filters if c == 'O' else
+                        input_shape[lhs_spec.index('C')] if c == 'I' else
+                        next(kernel_shape_iter) for c in rhs_spec]
+        output_shape = lax.conv_general_shape_tuple(input_shape, filter_shape, strides, padding, dimension_numbers)
+        bias_shape = [num_filters if c == 'C' else 1 for c in out_spec]
+        k1, k2 = random.split(rng)
+        weights, bias = weight_init(k1, filter_shape), bias_init(k2, bias_shape)
+        return output_shape, (weights, bias)
   
-  def apply_fun(params, inputs, **kwargs):
-    weights, bias = params
-    return lax.conv_general_dilated(inputs, weights, strides, padding, one, one, dimension_numbers=dimension_numbers) + bias
+    def apply_fun(params, inputs, **kwargs):
+        weights, bias = params
+        return lax.conv_general_dilated(inputs, weights, strides, padding, one, one, dimension_numbers=dimension_numbers) + bias
   
-  return init_fun, apply_fun
+    return init_fun, apply_fun
 
 # input_shape = (-1, input_height, input_width, input_channels)
 Conv = functools.partial(GeneralConv, ('NHWC', 'HWIO', 'NHWC'))
 
-# Might want to use separate decorators on the partial functions instead of I utilize the general convolution for multiple partial functions.
-# Conv = debug_decorator(Conv)
+# Apply debug decorators
+GeneralConv = debug_decorator(GeneralConv)
+Conv = debug_decorator(Conv)

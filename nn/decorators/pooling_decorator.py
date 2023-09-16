@@ -1,14 +1,23 @@
 import functools
 import logging
 import jax
+import sys
+from typing import Callable, TypeVar
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
 
 
-def debug_decorator(pooling_debug, func_name):
+P = ParamSpec("P")
+R = TypeVar("R")
+
+def debug_decorator(pooling_debug: Callable[P, R], func_name) -> Callable[P, R]:
     """
     Decorator to wrap the Pooling layers.
     """
     @functools.wraps(pooling_debug)
-    def Pooling(*args, **kwargs):
+    def Pooling(*args: P.args, **kwargs: P.kwargs) -> R:
         if logging.getLevelName(logging.root.level) == "INFO2":
             init_fun_debug, apply_fun_debug = pooling_debug(*args, **kwargs)
 

@@ -11,3 +11,5 @@ planning.txt
 *.egg-info
 .vscode/
 resnet50.py
+resnet.py
+test*.py
