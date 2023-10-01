@@ -1,4 +1,5 @@
 """A Convolutional Neural Network example for CIFAR-10"""
+# Note: Results may vary slightly between runs due to how jit traces the rng in the serial function.
 import sys
 sys.path.append("..")
 
@@ -14,28 +15,34 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from nn import *
 
-
-def loss(params, batch):
+def loss(params, batch, rng):
     inputs, targets = batch
-    predictions = net_predict(params, inputs)
+    predictions = net_predict(params, inputs, rng=rng)
     return categorical_cross_entropy(predictions, targets)
 
 def accuracy(params, batch):
     inputs, targets = batch
     target_class = jnp.argmax(targets, axis=1)
-    predicted_class = jnp.argmax(net_predict(params, inputs), axis=1)
+    predicted_class = jnp.argmax(net_predict(params, inputs, mode="test"), axis=1)
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = model_decorator(
     serial(
-        Conv(64, (5, 5), padding='SAME'), Elu,
+        Conv(32, (3, 3), padding='SAME'), Relu,
+        Conv(32, (3, 3), padding='SAME'), Relu,
         MaxPool((2, 2), strides=(2, 2)),
-        Conv(32, (3, 3), padding='SAME'), Elu,
+        Dropout(0.2),
+        Conv(64, (3, 3), padding='SAME'), Relu,
+        Conv(64, (3, 3), padding='SAME'), Relu,
         MaxPool((2, 2), strides=(2, 2)),
-        Conv(32, (3, 3), padding='SAME'), Elu,
+        Dropout(0.2),
+        Conv(128, (3, 3), padding='SAME'), Relu,
+        Conv(128, (3, 3), padding='SAME'), Relu,
         MaxPool((2, 2), strides=(2, 2)),
+        Dropout(0.2),
         Flatten,
-        Dense(84), Elu,
+        Dense(128), Relu,
+        Dropout(0.2),
         Dense(10), LogSoftmax,
     )
 )
@@ -43,7 +50,7 @@ net_init, net_predict = model_decorator(
 def main():
     rng = random.PRNGKey(0)
 
-    step_size = 0.001
+    step_size = 0.005
     num_epochs = 25
     batch_size = 64
     momentum_mass = 0.9
@@ -72,9 +79,9 @@ def main():
     opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
 
     @jit
-    def update(i, opt_state, batch):
+    def update(i, opt_state, batch, rng):
         params = get_params(opt_state)
-        return opt_update(i, grad(loss)(params, batch), opt_state)
+        return opt_update(i, grad(loss)(params, batch, rng), opt_state)
 
     _, init_params = net_init(rng, (-1, 32, 32, 3))
     opt_state = opt_init(init_params)
@@ -83,7 +90,7 @@ def main():
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
         for batch in range(num_batches):
-            opt_state = update(next(itercount), opt_state, next(batches))
+            opt_state = update(next(itercount), opt_state, next(batches), rng)
 
         params = get_params(opt_state)
         train_acc = accuracy(params, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
@@ -123,7 +130,7 @@ def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, col
             i = self.starting_index
             for j in range(rows):
                 for k in range(columns):
-                    output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape))
+                    output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape), mode="test")
                     prediction = int(jnp.argmax(output, axis=1)[0])
                     target = int(jnp.argmax(test_labels[i], axis=0))
                     prediction_color = "green" if prediction == target else "red"
