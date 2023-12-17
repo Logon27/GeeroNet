@@ -32,16 +32,18 @@ def serial(*layers):
             And params is a list of tuples of jax arrays representing parameters for each of the layers that were combined.
         """
         params = []
+        non_trainable_params = []
         for init_fun in init_funs:
             rng, layer_rng = random.split(rng)
-            input_shape, param = init_fun(layer_rng, input_shape)
+            input_shape, param, non_trainable_param = init_fun(layer_rng, input_shape)
             params.append(param)
+            non_trainable_params.append(non_trainable_param)
 
         # input_shape at this point represents the final layer's output shape
         output_shape = input_shape
-        return output_shape, params
+        return output_shape, params, non_trainable_params
 
-    def apply_fun(params: List[Params], inputs: ArrayLike, **kwargs) -> Array:
+    def apply_fun(params: List[Params], non_trainable_params, inputs: ArrayLike, **kwargs) -> Array:
         """
         Args:
             params: The list of parameters for the serial layer.
@@ -52,8 +54,9 @@ def serial(*layers):
         """
         rng = kwargs.pop("rng", None)
         rngs = (random.split(rng, num_layers) if rng is not None else (None,) * num_layers)
-        for fun, param, rng in zip(apply_funs, params, rngs):
-            inputs = fun(param, inputs, rng=rng, **kwargs)
-        return inputs
+        for index, (fun, param, non_trainable_param, rng) in enumerate(zip(apply_funs, params, non_trainable_params, rngs)):
+            inputs, non_trainable_param = fun(param, non_trainable_param, inputs, rng=rng, **kwargs)
+            non_trainable_params[index] = non_trainable_param
+        return inputs, non_trainable_params
 
     return init_fun, apply_fun
