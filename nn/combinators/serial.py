@@ -7,7 +7,6 @@ from nn.typing import Params
 from nn.decorators.serial_decorator import debug_decorator
 import jax
 
-
 @debug_decorator
 def serial(*layers):
     """Combinator for composing layers in serial.
@@ -44,7 +43,7 @@ def serial(*layers):
         output_shape = input_shape
         return output_shape, params, states
 
-    def apply_fun(params: List[Params], inputs: ArrayLike, states=[], **kwargs) -> Array:
+    def apply_fun(params: List[Params], states, inputs: ArrayLike, **kwargs) -> Array:
         """
         Args:
             params: The list of parameters for the serial layer.
@@ -53,15 +52,12 @@ def serial(*layers):
         Returns:
             The result of the forward pass for the serial layers.
         """
-        # If we have a conditional, jaxpr will only know about the branch we take
-        # If empty list populate with None values
-        states = [None] * len(params) if not states else states
-        
         rng = kwargs.pop("rng", None)
         rngs = (random.split(rng, num_layers) if rng is not None else (None,) * num_layers)
         for index, (fun, param, state, rng) in enumerate(zip(apply_funs, params, states, rngs)):
             inputs, state = fun(param, state, inputs, rng=rng, **kwargs)
             states[index] = state
+        
         return inputs, states
 
     return init_fun, apply_fun

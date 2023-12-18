@@ -42,7 +42,7 @@ def _pooling_layer(reducer, init_val, rescaler=None):
             return out_shape, (), None
         def apply_fun(params, state, inputs, **kwargs):
             out = lax.reduce_window(inputs, init_val, reducer, window_shape, strides, padding)
-            return rescale(out, inputs, spec), state if rescale else out, state
+            return (rescale(out, inputs, spec), state) if rescale else (out, state)
         return init_fun, apply_fun
     return PoolingLayer
 

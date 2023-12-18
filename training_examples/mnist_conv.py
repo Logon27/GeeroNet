@@ -15,15 +15,10 @@ from matplotlib.widgets import Button
 from nn import *
 
 
-def loss(params, batch):
-    inputs, targets = batch
-    predictions = net_predict(params, inputs)[0]
-    return categorical_cross_entropy(predictions, targets)
-
-def accuracy(params, batch):
+def accuracy(params, states, batch):
     inputs, targets = batch
     target_class = jnp.argmax(targets, axis=1)
-    predicted_class = jnp.argmax(net_predict(params, inputs)[0], axis=1)
+    predicted_class = jnp.argmax(net_predict(params, states, inputs)[0], axis=1)
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = model_decorator(
@@ -72,29 +67,36 @@ def main():
     opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
 
     @jit
-    def update(i, opt_state, batch):
-        params = get_params(opt_state)
-        return opt_update(i, grad(loss)(params, batch), opt_state)
+    def update(i, opt_state, states, batch):
+        def loss(params, states, batch):
+            """Calculates the loss of the network as a single value / float"""
+            inputs, targets = batch
+            predictions, states = net_predict(params, states, inputs)
+            return categorical_cross_entropy(predictions, targets), states
 
-    _, init_params, _ = net_init(rng, (-1, 28, 28, 1))
+        params = get_params(opt_state)
+        grads, states = grad(loss, has_aux=True)(params, states, batch)
+        return opt_update(i, grads, opt_state), states
+
+    _, init_params, states = net_init(rng, (-1, 28, 28, 1))
     opt_state = opt_init(init_params)
     itercount = itertools.count()
 
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
         for batch in range(num_batches):
-            opt_state = update(next(itercount), opt_state, next(batches))
+            opt_state, states = update(next(itercount), opt_state, states, next(batches))
 
         params = get_params(opt_state)
-        train_acc = accuracy(params, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
-        test_acc = accuracy(params, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
+        train_acc = accuracy(params, states, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
+        test_acc = accuracy(params, states, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
         t.set_description_str("Accuracy Train = {:.2%}, Accuracy Test = {:.2%}".format(train_acc, test_acc))
     print("Training Complete.")
 
     # Visual Debug After Training
-    visual_debug(get_params(opt_state), test_images, test_labels)
+    visual_debug(get_params(opt_state), states, test_images, test_labels)
 
-def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, columns=10):
+def visual_debug(params, states, test_images, test_labels, starting_index=0, rows=5, columns=10):
     """Visually displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
     print("Displaying Visual Debug...")
     fig, axes = plt.subplots(nrows=rows, ncols=columns, sharex=False, sharey=True, figsize=(12, 8))
@@ -109,7 +111,7 @@ def visual_debug(params, test_images, test_labels, starting_index=0, rows=5, col
             i = self.starting_index
             for j in range(rows):
                 for k in range(columns):
-                    output = net_predict(params, test_images[i].reshape(1, *test_images[i].shape))[0]
+                    output = net_predict(params, states, test_images[i].reshape(1, *test_images[i].shape))[0]
                     prediction = int(jnp.argmax(output, axis=1)[0])
                     target = int(jnp.argmax(test_labels[i], axis=0))
                     prediction_color = "green" if prediction == target else "red"

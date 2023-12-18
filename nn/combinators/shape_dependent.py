@@ -26,6 +26,6 @@ def shape_dependent(make_layer):
   """
   def init_fun(rng, input_shape):
     return make_layer(input_shape)[0](rng, input_shape)
-  def apply_fun(params, inputs, **kwargs):
-    return make_layer(inputs.shape)[1](params, inputs, **kwargs)
+  def apply_fun(params, state, inputs, **kwargs):
+    return make_layer(inputs.shape)[1](params, state, inputs, **kwargs)
   return init_fun, apply_fun
