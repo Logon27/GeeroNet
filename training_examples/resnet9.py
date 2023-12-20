@@ -31,7 +31,7 @@ import training_examples.helpers.datasets as datasets
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 from functools import partial
-from dm_pix import rotate
+from dm_pix import rotate, random_flip_left_right
 from nn import *
 
 # ResNet blocks compose other layers
@@ -49,7 +49,7 @@ def ConvBlock(kernel_size, filters, strides=(2, 2)):
         BatchNorm(),
     )
     Shortcut = serial(Conv(filters3, (1, 1), strides), BatchNorm())
-    return serial(FanOut(2), parallel(Main, Shortcut), FanInSum, Relu, Dropout(0.1))
+    return serial(FanOut(2), parallel(Main, Shortcut), FanInSum, Relu)
 
 def IdentityBlock(kernel_size, filters):
     ks = kernel_size
@@ -69,7 +69,7 @@ def IdentityBlock(kernel_size, filters):
         )
 
     Main = shape_dependent(make_main)
-    return serial(FanOut(2), parallel(Main, Identity), FanInSum, Relu, Dropout(0.1))
+    return serial(FanOut(2), parallel(Main, Identity), FanInSum, Relu)
 
 
 # https://medium.com/analytics-vidhya/understanding-and-implementation-of-residual-networks-resnets-b80f9a507b9c
@@ -94,6 +94,7 @@ def ResNet9(num_classes):
   return serial(
         Conv(64, (3, 3), (1, 1), padding="SAME"),
         BatchNorm(), Relu,
+        IdentityBlock(3, [64, 64]),
         IdentityBlock(3, [64, 64]),
         ConvBlock(3, [64, 64, 128]),
         IdentityBlock(3, [128, 128]),
@@ -200,10 +201,21 @@ def augment(rng, batch):
     random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-25, maxval=25), in_axes=(0), out_axes=0)(subkeys)
     batch = jax.vmap(lambda array, angle : rotate(array, angle=(angle * (jnp.pi / 180))))(batch, random_angles)
 
+    # Translate https://jax.readthedocs.io/en/latest/_autosummary/jax.image.scale_and_translate.html
+    # random_vertical_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-4, maxval=4), in_axes=(0), out_axes=0)(subkeys)
+    # random_horizontal_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-4, maxval=4), in_axes=(0), out_axes=0)(subkeys)
+    # batch = jax.vmap(lambda x, vertical_shift, horizontal_shift: jax.image.scale_and_translate(
+    #     x,
+    #     shape=x.shape,
+    #     spatial_dims=(0, 1),
+    #     translation=jnp.array([vertical_shift, horizontal_shift]),
+    #     scale=jnp.array([1, 1]),
+    #     method='linear'
+    # ), in_axes=(0,0,0), out_axes=0)(batch, random_vertical_shifts, random_horizontal_shifts)
+    # batch = jax.vmap(lambda array, key : random_flip_left_right(key, array))(batch, subkeys)
     # image_array = jnp.array((batch[0]), dtype="int8")
     # save_rbg_image(image_array, "test_image2.png")
     # exit()
-    # Translate https://jax.readthedocs.io/en/latest/_autosummary/jax.image.scale_and_translate.html
     # Noise https://dm-pix.readthedocs.io/en/latest/api.html?highlight=translate#dm_pix.elastic_deformation
     batch = batch / 255
     return batch
@@ -226,8 +238,8 @@ rng = random.PRNGKey(0)
 def main():
 
     step_size = 0.001
-    num_epochs = 40 # 10
-    batch_size = 256 # 64
+    num_epochs = 25 # 10
+    batch_size = 128 # 64
     momentum_mass = 0.9
     # IMPORTANT
     # If your network is larger and you test against the entire dataset for the accuracy.
@@ -272,6 +284,7 @@ def main():
     print("Starting training...")
     highest_train_acc = 0
     highest_test_acc = 0
+    highest_opt_state, highest_states = opt_state, states
     for epoch in (t := trange(num_epochs)):
         for batch in range(num_batches):
             opt_state, states = update(next(itercount), opt_state, states, next(batches))
@@ -279,14 +292,20 @@ def main():
         params = get_params(opt_state)
         train_acc = accuracy(params, states, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
         test_acc = accuracy(params, states, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
+        # Track the highest accuracy achieved
         if train_acc > highest_train_acc:
             highest_train_acc = train_acc
         if test_acc > highest_test_acc:
+            # Save the highest weights for predictions
             highest_test_acc = test_acc
+            highest_opt_state, highest_states = opt_state, states
         t.set_description_str("Accuracy Train = {:.2%}, Accuracy Test = {:.2%}".format(train_acc, test_acc))
     print("Training Complete.")
     print(f"Highest Train Accuracy {highest_train_acc:.2%}")
     print(f"Highest Test Accuracy {highest_test_acc:.2%}")
+    print("Setting weights to highest achieved test accuracy")
+    opt_state = highest_opt_state
+    states = highest_states
 
     # Visual Debug After Training
     visual_debug(get_params(opt_state), states, test_images, test_labels)
