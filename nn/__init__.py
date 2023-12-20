@@ -27,6 +27,7 @@ from .activations.activations import Tanh, Relu, Exp, LogSoftmax, Softmax, Softp
 # Optimizers
 from .optimizers.sgd import sgd
 from .optimizers.momentum import momentum
+from .optimizers.adam import adam
 
 # Loss Functions
 from .losses.mean_squared_error import mean_squared_error
@@ -35,7 +36,7 @@ from .losses.binary_cross_entropy import binary_cross_entropy
 
 # Image processing functionality
 from .data_processing.image_utils import save_grayscale_image, upscale_grayscale_image, scale_grayscale_image, translate_grayscale_image, \
-    noisify_grayscale_image, rotate_grayscale_image, zoom_grayscale_image
+    noisify_grayscale_image, rotate_grayscale_image, zoom_grayscale_image, save_rbg_image
 
 # Saving and loading weights from file
 from .data_processing.file_io import save_params, load_params

@@ -30,6 +30,8 @@ from jax import jit, grad, random
 import training_examples.helpers.datasets as datasets
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
+from functools import partial
+from dm_pix import rotate
 from nn import *
 
 # ResNet blocks compose other layers
@@ -47,7 +49,7 @@ def ConvBlock(kernel_size, filters, strides=(2, 2)):
         BatchNorm(),
     )
     Shortcut = serial(Conv(filters3, (1, 1), strides), BatchNorm())
-    return serial(FanOut(2), parallel(Main, Shortcut), FanInSum, Dropout(0.5), Relu)
+    return serial(FanOut(2), parallel(Main, Shortcut), FanInSum, Relu, Dropout(0.1))
 
 def IdentityBlock(kernel_size, filters):
     ks = kernel_size
@@ -67,17 +69,39 @@ def IdentityBlock(kernel_size, filters):
         )
 
     Main = shape_dependent(make_main)
-    return serial(FanOut(2), parallel(Main, Identity), FanInSum, Relu)
+    return serial(FanOut(2), parallel(Main, Identity), FanInSum, Relu, Dropout(0.1))
+
 
 # https://medium.com/analytics-vidhya/understanding-and-implementation-of-residual-networks-resnets-b80f9a507b9c
+def ResNet92(num_classes):
+  return serial(
+        Conv(64, (3, 3), (1, 1), padding="SAME"),
+        BatchNorm(), Relu,
+        IdentityBlock(3, [64, 64]),
+        ConvBlock(3, [64, 64, 128]),
+        IdentityBlock(3, [128, 128]),
+        IdentityBlock(3, [128, 128]),
+        ConvBlock(3, [128, 128, 256]),
+        IdentityBlock(3, [256, 256]),
+        IdentityBlock(3, [256, 256]),
+        AvgPool((8, 8), (1, 1)),
+        Flatten,
+        Dense(num_classes),
+        LogSoftmax
+    )
+
 def ResNet9(num_classes):
   return serial(
-        Conv(64, (3, 3), (2, 2), padding="SAME"),
+        Conv(64, (3, 3), (1, 1), padding="SAME"),
         BatchNorm(), Relu,
+        IdentityBlock(3, [64, 64]),
         ConvBlock(3, [64, 64, 128]),
-        # IdentityBlock(3, [64, 64]),
-        # IdentityBlock(3, [64, 64]),
-        AvgPool((3, 3), (2, 2)),
+        IdentityBlock(3, [128, 128]),
+        IdentityBlock(3, [128, 128]),
+        ConvBlock(3, [128, 128, 256]),
+        IdentityBlock(3, [256, 256]),
+        IdentityBlock(3, [256, 256]),
+        AvgPool((8, 8)),
         Flatten,
         Dense(num_classes),
         LogSoftmax
@@ -164,14 +188,45 @@ def accuracy(params, states, batch):
     predicted_class = jnp.argmax(net_predict(params, states, inputs, rng=rng, mode="test")[0], axis=1)
     return jnp.mean(predicted_class == target_class)
 
+# (256, 32, 32, 3)
+@jit
+def augment(rng, batch):
+    # Generate the same number of keys as the array size. In this case, 5.
+    subkeys = random.split(rng, batch.shape[0])
+    batch = batch * 255
+    # image_array = jnp.array((batch[0]), dtype="int8")
+    # save_rbg_image(image_array, "test_image1.png")
+    # Rotate https://dm-pix.readthedocs.io/en/latest/api.html#rotate
+    random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-25, maxval=25), in_axes=(0), out_axes=0)(subkeys)
+    batch = jax.vmap(lambda array, angle : rotate(array, angle=(angle * (jnp.pi / 180))))(batch, random_angles)
+
+    # image_array = jnp.array((batch[0]), dtype="int8")
+    # save_rbg_image(image_array, "test_image2.png")
+    # exit()
+    # Translate https://jax.readthedocs.io/en/latest/_autosummary/jax.image.scale_and_translate.html
+    # Noise https://dm-pix.readthedocs.io/en/latest/api.html?highlight=translate#dm_pix.elastic_deformation
+    batch = batch / 255
+    return batch
+
+# (50000, 32, 32, 3)
+# def preprocessing(images):
+#     # train_images = train_images * 255
+#     # test_images = test_images * 255
+#     images = jax.vmap(lambda x: jax.image.resize(x, (224, 224, 3), "nearest"))(images)
+#     # image_array = jax.image.resize((train_images[0]*255), (224, 224, 3), "nearest")
+#     # image_array = jnp.array(image_array, dtype="int8")
+#     # save_rbg_image(image_array, "test_image.png")
+#     # exit()
+#     return images
+
 num_classes = 10
 net_init, net_predict = model_decorator(ResNet9(num_classes))
 rng = random.PRNGKey(0)
 
 def main():
 
-    step_size = 0.1
-    num_epochs = 30 # 10
+    step_size = 0.001
+    num_epochs = 40 # 10
     batch_size = 256 # 64
     momentum_mass = 0.9
     # IMPORTANT
@@ -192,11 +247,11 @@ def main():
                 # batch_idx is a list of indices.
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
-                yield train_images[batch_idx], train_labels[batch_idx]
+                yield augment(rng, train_images[batch_idx]), train_labels[batch_idx]
 
     batches = data_stream(rng)
 
-    opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
+    opt_init, opt_update, get_params = adam(step_size)
 
     @jit
     def update(i, opt_state, states, batch):
@@ -215,6 +270,8 @@ def main():
     itercount = itertools.count()
 
     print("Starting training...")
+    highest_train_acc = 0
+    highest_test_acc = 0
     for epoch in (t := trange(num_epochs)):
         for batch in range(num_batches):
             opt_state, states = update(next(itercount), opt_state, states, next(batches))
@@ -222,8 +279,14 @@ def main():
         params = get_params(opt_state)
         train_acc = accuracy(params, states, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
         test_acc = accuracy(params, states, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
+        if train_acc > highest_train_acc:
+            highest_train_acc = train_acc
+        if test_acc > highest_test_acc:
+            highest_test_acc = test_acc
         t.set_description_str("Accuracy Train = {:.2%}, Accuracy Test = {:.2%}".format(train_acc, test_acc))
     print("Training Complete.")
+    print(f"Highest Train Accuracy {highest_train_acc:.2%}")
+    print(f"Highest Test Accuracy {highest_test_acc:.2%}")
 
     # Visual Debug After Training
     visual_debug(get_params(opt_state), states, test_images, test_labels)

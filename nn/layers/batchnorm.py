@@ -25,12 +25,14 @@ def BatchNorm(axis=(0, 1, 2), epsilon=1e-5, center=True, scale=True, beta_init=z
     _beta_init = lambda rng, shape: beta_init(rng, shape) if center else ()
     _gamma_init = lambda rng, shape: gamma_init(rng, shape) if scale else ()
     axis = (axis,) if jnp.isscalar(axis) else axis
+
     def init_fun(rng, input_shape):
         shape = tuple(d for i, d in enumerate(input_shape) if i not in axis)
         k1, k2 = random.split(rng)
         beta, gamma = _beta_init(k1, shape), _gamma_init(k2, shape)
         moving_mean, moving_var = jnp.zeros(shape), jnp.zeros(shape)
         return input_shape, (beta, gamma), (moving_mean, moving_var)
+    
     def apply_fun(params, states, x, **kwargs):
         beta, gamma = params
         moving_mean, moving_var = states

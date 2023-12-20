@@ -187,8 +187,8 @@ def save_grayscale_image(device_array: ArrayLike, file_name: str):
     Example:
         Usage for mnist::
 
-        # Times 256 because the image values are normalized.
-        image_array = jnp.reshape(train_images[0] * 256, (28,28))
+        # Times 255 because the image values are normalized.
+        image_array = jnp.reshape(train_images[0] * 255, (28,28))
         save_grayscale_image(image_array, "test_image.png")
 
     Returns:
@@ -198,6 +198,30 @@ def save_grayscale_image(device_array: ArrayLike, file_name: str):
     numpy_array = np.asarray(device_array)
     data = im.fromarray(numpy_array)
     data = data.convert("L")
+    
+    # Saving the final output to file
+    data.save(file_name)
+    print("Saved Image... {}".format(file_name))
+
+def save_rbg_image(device_array: ArrayLike, file_name: str):
+    """A function to save jax arrays to disk as an image for debugging purposes.
+    
+    Args:
+        device_array: 3 dimensional jax array. Channel being the last dimension
+        file_name: File name for the saved image. Alternatively you can provide a filepath.
+
+    Example:
+        Usage for cifar::
+
+        image_array = jnp.array((train_images[0] * 255), dtype="int8")
+        save_rbg_image(image_array, "test_image.png")
+
+    Returns:
+        None
+    """
+    # Create an image from the array
+    numpy_array = np.asarray(device_array)
+    data = im.fromarray(numpy_array, "RGB")
     
     # Saving the final output to file
     data.save(file_name)
