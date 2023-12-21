@@ -59,7 +59,7 @@ def IdentityBlock(kernel_size, filters):
 
 
 # https://medium.com/analytics-vidhya/understanding-and-implementation-of-residual-networks-resnets-b80f9a507b9c
-def ResNet9(num_classes):
+def ResNet(num_classes):
   return serial(
         Conv(64, (3, 3), (1, 1), padding="SAME"),
         BatchNorm(), Relu,
@@ -108,7 +108,7 @@ def augment(rng, batch):
     return batch
 
 num_classes = 10
-net_init, net_predict = model_decorator(ResNet9(num_classes))
+net_init, net_predict = model_decorator(ResNet(num_classes))
 
 def main():
     rng = random.PRNGKey(0)
