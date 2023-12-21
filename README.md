@@ -61,6 +61,7 @@ By default the requirements.txt file will install jax for cpu. However, to take 
 | [mnist_fcnn.py](./training_examples/mnist_fcnn.py) | MNIST | MNIST training example that utilizes a fully convolutional neural network |
 | [fashion_mnist.py](./training_examples/fashion_mnist.py) | FASHION MNIST | FASHION MNIST training example that utilizes a convolutional neural network |
 | [cifar10.py](./training_examples/cifar10.py) | CIFAR-10 | CIFAR-10 training example that utilizes a convolutional neural network |
+| [resnet.py](./training_examples/resnet.py) | CIFAR-10 | CIFAR-10 training example that utilizes a resnet of my own creation. Validation accuracy is in the high 80s |
 
 ### CIFAR10 Example  
 

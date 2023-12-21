@@ -1,22 +1,9 @@
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""A Resnet example for CIFAR-10. 
 
-"""A mock-up showing a ResNet50 network with training on synthetic data.
-
-This file uses the stax neural network definition library and the optimizers
-optimization library.
+It achieves high 80s accuracy on the validation set.
+The only data augmentation used is image rotation.
 """
+
 import sys
 sys.path.append("..")
 
@@ -30,8 +17,7 @@ from jax import jit, grad, random
 import training_examples.helpers.datasets as datasets
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
-from functools import partial
-from dm_pix import rotate, random_flip_left_right
+from dm_pix import rotate
 from nn import *
 
 # ResNet blocks compose other layers
@@ -73,23 +59,6 @@ def IdentityBlock(kernel_size, filters):
 
 
 # https://medium.com/analytics-vidhya/understanding-and-implementation-of-residual-networks-resnets-b80f9a507b9c
-def ResNet92(num_classes):
-  return serial(
-        Conv(64, (3, 3), (1, 1), padding="SAME"),
-        BatchNorm(), Relu,
-        IdentityBlock(3, [64, 64]),
-        ConvBlock(3, [64, 64, 128]),
-        IdentityBlock(3, [128, 128]),
-        IdentityBlock(3, [128, 128]),
-        ConvBlock(3, [128, 128, 256]),
-        IdentityBlock(3, [256, 256]),
-        IdentityBlock(3, [256, 256]),
-        AvgPool((8, 8), (1, 1)),
-        Flatten,
-        Dense(num_classes),
-        LogSoftmax
-    )
-
 def ResNet9(num_classes):
   return serial(
         Conv(64, (3, 3), (1, 1), padding="SAME"),
@@ -108,42 +77,6 @@ def ResNet9(num_classes):
         LogSoftmax
     )
 
-# def ResNet9(num_classes):
-#   return serial(
-#         Conv(64, (3, 3), (2, 2), padding="SAME"),
-#         BatchNorm(), Relu,
-#         ConvBlock(3, [64, 64, 128]),
-#         IdentityBlock(3, [64, 64]),
-#         IdentityBlock(3, [64, 64]),
-#         ConvBlock(3, [128, 128, 256]),
-#         IdentityBlock(3, [256, 256]),
-#         IdentityBlock(3, [256, 256]),
-#         AvgPool((2, 2), (2, 2)),
-#         Flatten,
-#         Dense(num_classes),
-#         LogSoftmax
-#     )
-
-
-# def ResNet9(num_classes):
-#   return serial(
-        # Conv(64, (3, 3), (2, 2)),
-        # BatchNorm(), Relu, MaxPool((2, 2), strides=(2, 2)),
-        # ConvBlock(3, [64, 64, 128]),
-        # Dropout(0.1),
-        # IdentityBlock(3, [64, 64]),
-        # IdentityBlock(3, [64, 64]),
-        # ConvBlock(3, [128, 128, 256]),
-        # Dropout(0.2),
-        # ConvBlock(3, [256, 256, 256]),
-        # IdentityBlock(3, [256, 256]),
-        # IdentityBlock(3, [256, 256]),
-        # AvgPool((7, 7), (2, 2)),
-        # Flatten,
-        # Dense(num_classes),
-        # LogSoftmax
-#     )
-
 #   def init_fun(rng, input_shape):
 #     return make_layer(input_shape)[0](rng, input_shape)
 # For the above 'make_layer' is actually the 'make_main' function.
@@ -155,92 +88,34 @@ def ResNet9(num_classes):
 # only specify the number of output channels in the parameters and not their output shapes.
 
 
-# ResNet architectures compose layers and ResNet blocks
-
-def ResNet50(num_classes):
-  return serial(
-      GeneralConv(('NHWC', 'OIHW', 'NHWC'), 64, (7, 7), (2, 2), 'SAME'),
-      BatchNorm(), Relu, MaxPool((3, 3), strides=(2, 2)),
-      ConvBlock(3, [64, 64, 256], strides=(1, 1)),
-      IdentityBlock(3, [64, 64]),
-      IdentityBlock(3, [64, 64]),
-      ConvBlock(3, [128, 128, 512]),
-      IdentityBlock(3, [128, 128]),
-      IdentityBlock(3, [128, 128]),
-      IdentityBlock(3, [128, 128]),
-      ConvBlock(3, [256, 256, 1024]),
-      IdentityBlock(3, [256, 256]),
-      IdentityBlock(3, [256, 256]),
-      IdentityBlock(3, [256, 256]),
-      IdentityBlock(3, [256, 256]),
-      IdentityBlock(3, [256, 256]),
-      ConvBlock(3, [512, 512, 2048]),
-      IdentityBlock(3, [512, 512]),
-      IdentityBlock(3, [512, 512]),
-      AvgPool((7, 7)),
-      Flatten,
-      Dense(num_classes),
-      LogSoftmax
-    )
-
-def accuracy(params, states, batch):
+def accuracy(params, states, batch, rng):
     inputs, targets = batch
     target_class = jnp.argmax(targets, axis=1)
     predicted_class = jnp.argmax(net_predict(params, states, inputs, rng=rng, mode="test")[0], axis=1)
     return jnp.mean(predicted_class == target_class)
 
-# (256, 32, 32, 3)
+# (128, 32, 32, 3)
+# Use to rotate images for better generalization
 @jit
 def augment(rng, batch):
-    # Generate the same number of keys as the array size. In this case, 5.
+    # Generate the same number of keys as the array size.
     subkeys = random.split(rng, batch.shape[0])
     batch = batch * 255
-    # image_array = jnp.array((batch[0]), dtype="int8")
-    # save_rbg_image(image_array, "test_image1.png")
     # Rotate https://dm-pix.readthedocs.io/en/latest/api.html#rotate
     random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-25, maxval=25), in_axes=(0), out_axes=0)(subkeys)
     batch = jax.vmap(lambda array, angle : rotate(array, angle=(angle * (jnp.pi / 180))))(batch, random_angles)
-
-    # Translate https://jax.readthedocs.io/en/latest/_autosummary/jax.image.scale_and_translate.html
-    # random_vertical_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-4, maxval=4), in_axes=(0), out_axes=0)(subkeys)
-    # random_horizontal_shifts = jax.vmap(lambda x: jax.random.uniform(x, minval=-4, maxval=4), in_axes=(0), out_axes=0)(subkeys)
-    # batch = jax.vmap(lambda x, vertical_shift, horizontal_shift: jax.image.scale_and_translate(
-    #     x,
-    #     shape=x.shape,
-    #     spatial_dims=(0, 1),
-    #     translation=jnp.array([vertical_shift, horizontal_shift]),
-    #     scale=jnp.array([1, 1]),
-    #     method='linear'
-    # ), in_axes=(0,0,0), out_axes=0)(batch, random_vertical_shifts, random_horizontal_shifts)
-    # batch = jax.vmap(lambda array, key : random_flip_left_right(key, array))(batch, subkeys)
-    # image_array = jnp.array((batch[0]), dtype="int8")
-    # save_rbg_image(image_array, "test_image2.png")
-    # exit()
-    # Noise https://dm-pix.readthedocs.io/en/latest/api.html?highlight=translate#dm_pix.elastic_deformation
     batch = batch / 255
     return batch
 
-# (50000, 32, 32, 3)
-# def preprocessing(images):
-#     # train_images = train_images * 255
-#     # test_images = test_images * 255
-#     images = jax.vmap(lambda x: jax.image.resize(x, (224, 224, 3), "nearest"))(images)
-#     # image_array = jax.image.resize((train_images[0]*255), (224, 224, 3), "nearest")
-#     # image_array = jnp.array(image_array, dtype="int8")
-#     # save_rbg_image(image_array, "test_image.png")
-#     # exit()
-#     return images
-
 num_classes = 10
 net_init, net_predict = model_decorator(ResNet9(num_classes))
-rng = random.PRNGKey(0)
 
 def main():
+    rng = random.PRNGKey(0)
 
     step_size = 0.001
-    num_epochs = 25 # 10
-    batch_size = 128 # 64
-    momentum_mass = 0.9
+    num_epochs = 25
+    batch_size = 128
     # IMPORTANT
     # If your network is larger and you test against the entire dataset for the accuracy.
     # Then you will run out of RAM and get a std::bad_alloc error.
@@ -259,10 +134,10 @@ def main():
                 # batch_idx is a list of indices.
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
+                rng, subkey = random.split(rng)
                 yield augment(rng, train_images[batch_idx]), train_labels[batch_idx]
 
     batches = data_stream(rng)
-
     opt_init, opt_update, get_params = adam(step_size)
 
     @jit
@@ -276,7 +151,7 @@ def main():
         params = get_params(opt_state)
         grads, states = grad(loss, has_aux=True)(params, states, batch)
         return opt_update(i, grads, opt_state), states
-
+    
     _, init_params, states = net_init(rng, (1, 32, 32, 3))
     opt_state = opt_init(init_params)
     itercount = itertools.count()
@@ -290,8 +165,8 @@ def main():
             opt_state, states = update(next(itercount), opt_state, states, next(batches))
 
         params = get_params(opt_state)
-        train_acc = accuracy(params, states, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]))
-        test_acc = accuracy(params, states, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]))
+        train_acc = accuracy(params, states, (train_images[:accuracy_batch_size], train_labels[:accuracy_batch_size]), rng)
+        test_acc = accuracy(params, states, (test_images[:accuracy_batch_size], test_labels[:accuracy_batch_size]), rng)
         # Track the highest accuracy achieved
         if train_acc > highest_train_acc:
             highest_train_acc = train_acc
@@ -308,9 +183,9 @@ def main():
     states = highest_states
 
     # Visual Debug After Training
-    visual_debug(get_params(opt_state), states, test_images, test_labels)
+    visual_debug(get_params(opt_state), states, test_images, test_labels, rng)
 
-def visual_debug(params, states, test_images, test_labels, starting_index=0, rows=5, columns=10):
+def visual_debug(params, states, test_images, test_labels, rng, starting_index=0, rows=5, columns=10):
     """Visually displays a number of images along with the network prediction. Green means a correct guess. Red means an incorrect guess"""
     print("Displaying Visual Debug...")
 

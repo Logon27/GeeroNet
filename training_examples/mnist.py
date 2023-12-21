@@ -87,6 +87,8 @@ def main():
     print("Starting training...")
     for epoch in (t := trange(num_epochs)):
         for batch in range(num_batches):
+            # states is not really necessary since the model uses no running parameters.
+            # However, the states variable must be passed anyway to satisfy the serial return parameters.
             opt_state, states = update(next(itercount), opt_state, states, next(batches))
 
         params = get_params(opt_state)
