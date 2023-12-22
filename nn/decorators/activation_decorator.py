@@ -17,15 +17,15 @@ def debug_decorator(activation_debug):
 
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape: ArrayLike):
-                output_shape, () = init_fun_debug(rng, input_shape)
+                output_shape, (), state = init_fun_debug(rng, input_shape)
                 jax.debug.print(args[0].__name__.capitalize() + "()")
-                return output_shape, ()
+                return output_shape, (), state
             
             @functools.wraps(apply_fun_debug)
-            def apply_fun(params: Params, inputs: ArrayLike, **kwargs):
-                result = apply_fun_debug(params, inputs, **kwargs)
+            def apply_fun(params: Params, state, inputs: ArrayLike, **kwargs):
+                result, state = apply_fun_debug(params, state, inputs, **kwargs)
                 jax.debug.print(args[0].__name__.capitalize() + "()")
-                return result
+                return result, state
 
             return init_fun, apply_fun
         else:

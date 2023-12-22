@@ -30,16 +30,16 @@ def debug_decorator(parallel_debug):
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape):
                 jax.debug.print("=" * 100)
-                output_shape, params = init_fun_debug(rng, input_shape)
+                output_shape, params, state = init_fun_debug(rng, input_shape)
                 jax.debug.print("=" * 100)
-                return output_shape, params
+                return output_shape, params, state
             
             @functools.wraps(apply_fun_debug)
-            def apply_fun(params: List[Params], inputs: ArrayLike, **kwargs):
+            def apply_fun(params: List[Params], state, inputs: ArrayLike, **kwargs):
                 jax.debug.print("=" * 100)
-                result = apply_fun_debug(params, inputs, **kwargs)
+                result, state = apply_fun_debug(params, state, inputs, **kwargs)
                 jax.debug.print("=" * 100)
-                return result
+                return result, state
 
             return init_fun, apply_fun
         else:

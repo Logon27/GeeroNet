@@ -46,7 +46,7 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
         k1, k2 = random.split(rng)
         output_shape = -1, out_dim
         weights, bias = weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim))
-        return output_shape, (weights, bias), None
+        return output_shape, (weights, bias), ()
 
     # kwargs is necessary due to rng being passed to some apply functions.
     def apply_fun(params: Params, state, inputs: ArrayLike, **kwargs) -> Array:

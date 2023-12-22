@@ -17,13 +17,13 @@ def debug_decorator(serial_debug):
 
             @functools.wraps(init_fun_debug)
             def init_fun(rng: PRNGKey, input_shape):
-                output_shape, params = init_fun_debug(rng, input_shape)
-                return output_shape, params
+                output_shape, params, states = init_fun_debug(rng, input_shape)
+                return output_shape, params, states
             
             @functools.wraps(apply_fun_debug)
-            def apply_fun(params: List[Params], inputs: ArrayLike, **kwargs):
-                result = apply_fun_debug(params, inputs, **kwargs)
-                return result
+            def apply_fun(params: List[Params], states, inputs: ArrayLike, **kwargs):
+                result, states = apply_fun_debug(params, states, inputs, **kwargs)
+                return result, states
 
             return init_fun, apply_fun
         else:

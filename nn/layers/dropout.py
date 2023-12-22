@@ -29,7 +29,7 @@ def Dropout(drop_probability=0.25):
     """
 
     def init_fun(rng, input_shape):
-        return input_shape, (), None
+        return input_shape, (), ()
 
     def apply_fun(params, state, inputs, **kwargs):
         mode = kwargs.get("mode", "train")
