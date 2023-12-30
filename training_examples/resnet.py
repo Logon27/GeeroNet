@@ -1,7 +1,8 @@
 """A Resnet example for CIFAR-10. 
 
-It achieves high 80s accuracy on the validation set.
-The only data augmentation used is image rotation.
+It achieves around 90% accuracy on the test set.
+Uses rotation, resizing/cropping, and flipping for data augmentation
+The adam optimizer is used with an exponential decay learning rate schedule
 """
 
 import sys
@@ -14,10 +15,11 @@ from tqdm import trange
 import itertools
 import jax.numpy as jnp
 from jax import jit, grad, random
+from jax.tree_util import (tree_map, tree_flatten)
 import training_examples.helpers.datasets as datasets
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
-from dm_pix import rotate
+from dm_pix import rotate, random_flip_left_right, resize_with_crop_or_pad, random_crop
 from nn import *
 
 # ResNet blocks compose other layers
@@ -95,15 +97,19 @@ def accuracy(params, states, batch, rng):
     return jnp.mean(predicted_class == target_class)
 
 # (128, 32, 32, 3)
-# Use to rotate images for better generalization
 @jit
 def augment(rng, batch):
     # Generate the same number of keys as the array size.
     subkeys = random.split(rng, batch.shape[0])
     batch = batch * 255
-    # Rotate https://dm-pix.readthedocs.io/en/latest/api.html#rotate
-    random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-25, maxval=25), in_axes=(0), out_axes=0)(subkeys)
+    # Randomly rotate the image https://dm-pix.readthedocs.io/en/latest/api.html#rotate
+    random_angles = jax.vmap(lambda x: jax.random.uniform(x, minval=-15, maxval=15), in_axes=(0), out_axes=0)(subkeys)
     batch = jax.vmap(lambda array, angle : rotate(array, angle=(angle * (jnp.pi / 180))))(batch, random_angles)
+    # Resize to 36x36 then randomly crop the images back to 32x32
+    batch = jax.vmap(lambda array : resize_with_crop_or_pad(array, 36, 36, channel_axis=2))(batch)
+    batch = jax.vmap(lambda array, key : random_crop(key, array, (32, 32, 3)))(batch, subkeys)
+    # Randomly flip the image
+    batch = jax.vmap(lambda array, key : random_flip_left_right(key, array))(batch, subkeys)
     batch = batch / 255
     return batch
 
@@ -114,17 +120,37 @@ def main():
     rng = random.PRNGKey(0)
 
     step_size = 0.001
-    num_epochs = 25
+    num_epochs = 40
     batch_size = 128
     # IMPORTANT
     # If your network is larger and you test against the entire dataset for the accuracy.
     # Then you will run out of RAM and get a std::bad_alloc error.
     accuracy_batch_size = 1000
+    grad_clip = 1.0
 
     train_images, train_labels, test_images, test_labels = datasets.cifar10()
     num_train = train_images.shape[0]
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
+
+    # Learning rate schedule that introduces exponential decay
+    # https://keras.io/api/optimizers/learning_rate_schedules/exponential_decay/
+    def exponential_decay(initial_learning_rate, decay_rate, decay_steps):
+        def schedule(step):
+            return initial_learning_rate * decay_rate ** (step / decay_steps)
+        return schedule
+
+    # https://github.com/google/jax/blob/7961fb81cf7643387c472ad51881332379f2893c/jax/example_libraries/optimizers.py#L571
+    def l2_norm(tree):
+        """Compute the l2 norm of a pytree of arrays. Useful for weight decay."""
+        leaves, _ = tree_flatten(tree)
+        return jnp.sqrt(sum(jnp.vdot(x, x) for x in leaves))
+
+    def clip_grads(grad_tree, max_norm):
+        """Clip gradients stored as a pytree of arrays to maximum norm `max_norm`."""
+        norm = l2_norm(grad_tree)
+        normalize = lambda g: jnp.where(norm < max_norm, g, g * (max_norm / norm))
+        return tree_map(normalize, grad_tree)
 
     def data_stream(rng):
         while True:
@@ -135,10 +161,11 @@ def main():
                 # That means this function yields an array of training images equal to the batch size when 'next' is called.
                 batch_idx = perm[i * batch_size : (i + 1) * batch_size]
                 rng, subkey = random.split(rng)
-                yield augment(rng, train_images[batch_idx]), train_labels[batch_idx]
+                yield augment(subkey, train_images[batch_idx]), train_labels[batch_idx]
 
     batches = data_stream(rng)
-    opt_init, opt_update, get_params = adam(step_size)
+    # 0.001 * (0.96 ^ ((num_batches * epochs) / 300))
+    opt_init, opt_update, get_params = adam(exponential_decay(step_size, 0.96, 300))
 
     @jit
     def update(i, opt_state, states, batch):
@@ -150,6 +177,8 @@ def main():
 
         params = get_params(opt_state)
         grads, states = grad(loss, has_aux=True)(params, states, batch)
+        # Clip gradients to prevent the exploding gradients
+        grads = clip_grads(grads, grad_clip)
         return opt_update(i, grads, opt_state), states
     
     _, init_params, states = net_init(rng, (1, 32, 32, 3))
