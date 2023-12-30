@@ -65,7 +65,7 @@ By default the requirements.txt file will install jax for cpu. However, to take 
 
 ### CIFAR10 Resnet Example - 91.40% Accuracy  
 
-<img src="./img/resnet-accuracy.png" width="750" height="500"/>
+<img src="./img/resnet-accuracy.png" width="800" height="550"/>
 
 ---
 
