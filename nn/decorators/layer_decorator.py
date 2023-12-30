@@ -17,17 +17,17 @@ def debug_decorator(tuple_of_functions, print_separator):
 
         @functools.wraps(tuple_init_fun)
         def init_fun(rng: PRNGKey, input_shape):
-            output_shape, params = tuple_init_fun(rng, input_shape)
+            output_shape, params, state = tuple_init_fun(rng, input_shape)
             if print_separator:
                 jax.debug.print("-" * 100)
-            return output_shape, params
+            return output_shape, params, state
         
         @functools.wraps(tuple_apply_fun)
-        def apply_fun(params: List[Params], inputs: ArrayLike, **kwargs):
-            result = tuple_apply_fun(params, inputs, **kwargs)
+        def apply_fun(params: List[Params], state, inputs: ArrayLike, **kwargs):
+            result, state = tuple_apply_fun(params, state, inputs, **kwargs)
             if print_separator:
                 jax.debug.print("-" * 100)
-            return result
+            return result, state
     
         return (init_fun, apply_fun)
     else:

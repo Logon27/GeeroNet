@@ -24,8 +24,8 @@ def Flatten():
     """Layer construction function for flattening all but the leading dim."""
     def init_fun(rng, input_shape):
         output_shape = -1, functools.reduce(op.mul, input_shape[1:], 1)
-        return output_shape, ()
-    def apply_fun(params, inputs, **kwargs):
-        return jnp.reshape(inputs, (inputs.shape[0], -1))
+        return output_shape, (), ()
+    def apply_fun(params, state, inputs, **kwargs):
+        return jnp.reshape(inputs, (inputs.shape[0], -1)), state
     return init_fun, apply_fun
 Flatten = debug_decorator(Flatten)()

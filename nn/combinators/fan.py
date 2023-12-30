@@ -21,15 +21,15 @@ from nn.decorators.fan_in_concat_decorator import debug_decorator as faninconcat
 @fanout_debug_decorator
 def FanOut(num):
     """Layer construction function for a fan-out layer."""
-    init_fun = lambda rng, input_shape: ([input_shape] * num, ())
-    apply_fun = lambda params, inputs, **kwargs: [inputs] * num
+    init_fun = lambda rng, input_shape: ([input_shape] * num, (), None)
+    apply_fun = lambda params, states, inputs, **kwargs: ([inputs] * num, states)
     return init_fun, apply_fun
 
 
 def FanInSum():
     """Layer construction function for a fan-in sum layer."""
-    init_fun = lambda rng, input_shape: (input_shape[0], ())
-    apply_fun = lambda params, inputs, **kwargs: sum(inputs)
+    init_fun = lambda rng, input_shape: (input_shape[0], (), None)
+    apply_fun = lambda params, states, inputs, **kwargs: (sum(inputs), states)
     return init_fun, apply_fun
 FanInSum = faninsum_debug_decorator(FanInSum)()
 
@@ -41,7 +41,7 @@ def FanInConcat(axis=-1):
         ax = axis % len(input_shape[0])
         concat_size = sum(shape[ax] for shape in input_shape)
         out_shape = input_shape[0][:ax] + (concat_size,) + input_shape[0][ax+1:]
-        return out_shape, ()
-    def apply_fun(params, inputs, **kwargs):
-        return jnp.concatenate(inputs, axis)
+        return out_shape, (), None
+    def apply_fun(params, states, inputs, **kwargs):
+        return jnp.concatenate(inputs, axis), states
     return init_fun, apply_fun

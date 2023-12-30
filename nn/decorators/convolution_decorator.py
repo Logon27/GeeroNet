@@ -24,18 +24,18 @@ def debug_decorator(convolution_debug: Callable[P, R]) -> Callable[P, R]:
 
             @functools.wraps(init_fun_debug)
             def init_fun(rng, input_shape):
-                output_shape, (weights, bias) = init_fun_debug(rng, input_shape)
+                output_shape, (weights, bias), state = init_fun_debug(rng, input_shape)
                 debug_msg = "Conv(Input Shape: {}, Output Shape: {}) => Weight Shape: {}, Bias Shape: {}".format(input_shape, output_shape, weights.shape, bias.shape)
                 debug_msg = debug_msg.replace("-1", "*")
                 jax.debug.print(debug_msg)
-                return output_shape, (weights, bias)
+                return output_shape, (weights, bias), state
             
             @functools.wraps(apply_fun_debug)
-            def apply_fun(params, inputs, **kwargs):
+            def apply_fun(params, state, inputs, **kwargs):
                 weights, bias = params
-                result = apply_fun_debug(params, inputs, **kwargs)
+                result, state = apply_fun_debug(params, state, inputs, **kwargs)
                 jax.debug.print("I{} * W{} + B{} = Output Shape: {}".format(inputs.shape, weights.shape, bias.shape, result.shape))
-                return result
+                return result, state
 
             return init_fun, apply_fun
         else:

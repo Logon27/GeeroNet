@@ -6,6 +6,6 @@ from nn.decorators.reshape_decorator import debug_decorator
 @debug_decorator
 def Reshape(new_shape):
     """Layer construction function for a reshape layer."""
-    init_fun = lambda rng, input_shape: (new_shape, ())
-    apply_fun = lambda params, inputs, **kwargs: jnp.reshape(inputs, new_shape)
+    init_fun = lambda rng, input_shape: (new_shape, (), ())
+    apply_fun = lambda params, state, inputs, **kwargs: (jnp.reshape(inputs, new_shape), state)
     return init_fun, apply_fun

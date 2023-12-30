@@ -58,11 +58,11 @@ def GeneralConv(dimension_numbers, num_filters, kernel_shape, strides=None, padd
         bias_shape = [num_filters if c == 'C' else 1 for c in out_spec]
         k1, k2 = random.split(rng)
         weights, bias = weight_init(k1, filter_shape), bias_init(k2, bias_shape)
-        return output_shape, (weights, bias)
+        return output_shape, (weights, bias), ()
   
-    def apply_fun(params, inputs, **kwargs):
+    def apply_fun(params, state, inputs, **kwargs):
         weights, bias = params
-        return lax.conv_general_dilated(inputs, weights, strides, padding, one, one, dimension_numbers=dimension_numbers) + bias
+        return lax.conv_general_dilated(inputs, weights, strides, padding, one, one, dimension_numbers=dimension_numbers) + bias, state
   
     return init_fun, apply_fun
 

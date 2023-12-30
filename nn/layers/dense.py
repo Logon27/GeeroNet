@@ -7,6 +7,7 @@ from typing import Tuple
 from nn.typing import Params, InitFun, ApplyFun
 import jax.numpy as jnp
 from nn.decorators.dense_decorator import debug_decorator
+import jax
 
 
 @debug_decorator
@@ -45,10 +46,10 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
         k1, k2 = random.split(rng)
         output_shape = -1, out_dim
         weights, bias = weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim))
-        return output_shape, (weights, bias)
+        return output_shape, (weights, bias), ()
 
     # kwargs is necessary due to rng being passed to some apply functions.
-    def apply_fun(params: Params, inputs: ArrayLike, **kwargs) -> Array:
+    def apply_fun(params: Params, state, inputs: ArrayLike, **kwargs) -> Array:
         """
         Args:
             params: A tuple containing the weight and bias parameters represented as jax arrays.
@@ -63,6 +64,6 @@ def Dense(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tupl
             )
 
         weights, bias = params
-        return jnp.matmul(inputs, weights) + bias
+        return jnp.matmul(inputs, weights) + bias, state
 
     return init_fun, apply_fun

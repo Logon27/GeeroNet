@@ -29,9 +29,9 @@ def Dropout(drop_probability=0.25):
     """
 
     def init_fun(rng, input_shape):
-        return input_shape, ()
+        return input_shape, (), ()
 
-    def apply_fun(params, inputs, **kwargs):
+    def apply_fun(params, state, inputs, **kwargs):
         mode = kwargs.get("mode", "train")
         if mode == "train":
             # Only check for rng if in training mode
@@ -48,8 +48,8 @@ def Dropout(drop_probability=0.25):
             # Invert the probability because the implementation operates off the keep rate.
             rate = 1 - drop_probability
             keep = random.bernoulli(rng, rate, inputs.shape)
-            return jnp.where(keep, inputs, 0)
+            return jnp.where(keep, inputs, 0), state
         else:
-            return inputs
+            return inputs, state
 
     return init_fun, apply_fun

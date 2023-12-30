@@ -4,12 +4,11 @@ __pycache__/
 build/
 dist/
 setup.py
-notes.txt
+*notes*.txt
 planning.txt
 *.spec
 *.pkl
 *.egg-info
 .vscode/
 resnet50.py
-resnet.py
 test*.py
