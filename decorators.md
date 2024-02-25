@@ -28,7 +28,7 @@ The python decorators are purely for debugging purposes. They provide no additio
 | SumPool | &check; |
 | AvgPool | &check; |
 | Dropout | &check; |
-| BatchNorm | &cross; |
+| BatchNorm | &check; |
 
 ### Activation Functions
 

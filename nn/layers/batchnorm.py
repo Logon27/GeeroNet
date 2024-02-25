@@ -16,10 +16,12 @@ from jax import random
 import jax.numpy as jnp
 from jax.nn.initializers import ones, zeros
 from jax.nn import standardize
+from nn.decorators.batchnorm_decorator import debug_decorator
 
 
 # New batchnorm implementation based on...
 # https://d2l.ai/chapter_convolutional-modern/batch-norm.html
+@debug_decorator
 def BatchNorm(axis=(0, 1, 2), epsilon=1e-5, center=True, scale=True, beta_init=zeros, gamma_init=ones, momentum=0.9):
     """Layer construction function for a batch normalization layer."""
     _beta_init = lambda rng, shape: beta_init(rng, shape) if center else ()
