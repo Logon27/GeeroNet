@@ -6,6 +6,7 @@ from .decorators.model_decorator import model_decorator
 
 # Layers
 from .layers.dense import Dense
+from .layers.sin import Sin
 from .layers.convolution import Conv
 from .layers.convolution import GeneralConv
 from .layers.flatten import Flatten
