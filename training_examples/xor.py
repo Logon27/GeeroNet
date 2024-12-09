@@ -23,17 +23,15 @@ def accuracy(params, states, batch):
 
 net_init, net_predict = model_decorator(
     serial(
-        Sin(100),
-        # Relu,
+        # Can this not rotate along the y axis?
         Sin(1),
-        # Relu
     )
 )
 
 def main():
     rng = random.PRNGKey(0)
 
-    step_size = 0.03
+    step_size = 0.003
     num_epochs = 1000
     batch_size = 1
     momentum_mass = 0.9
@@ -46,7 +44,7 @@ def main():
     num_complete_batches, leftover = divmod(num_train, batch_size)
     num_batches = num_complete_batches + bool(leftover)
 
-    opt_init, opt_update, get_params = sgd(step_size)
+    opt_init, opt_update, get_params = momentum(step_size, mass=momentum_mass)
 
     @jit
     def update(i, opt_state, states, batch):

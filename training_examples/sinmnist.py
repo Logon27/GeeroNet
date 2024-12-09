@@ -23,22 +23,48 @@ def accuracy(params, states, batch):
     return jnp.mean(predicted_class == target_class)
 
 net_init, net_predict = model_decorator(
+    # serial(
+    #     Dense(784),
+    #     SinAct,
+    #     # Sum,
+    #     Dense(128),
+    #     SinAct,
+    #     # Sum,
+    #     Dense(64),
+    #     SinAct,
+    #     # Sum,
+    #     Dense(10),
+    #     LogSoftmax
+    # )
     serial(
+        # This seems to learn more like a human, it guesses based on the geometry and shapes very well.
+        # Maybe I need a layer that only rotates a function
+        # \sin\left(\sin\left(\left(x\cdot w_{1}\right)+b_{1}\right)\cdot w_{2}+b_{2}\right)
         Sin(784),
-        Relu,
-        Sin(128),
-        Relu,
-        Sin(64),
-        Relu,
-        Sin(10),
+        # Elu,
+        # Sin(128),
+        # Elu,
+        # Sin(64),
+        # Elu,
+        # Sin(10),
         LogSoftmax
     )
+    # serial(
+    #     Sin(784),
+    #     Relu,
+    #     Sin(128),
+    #     Relu,
+    #     Sin(64),
+    #     Relu,
+    #     Sin(10),
+    #     LogSoftmax
+    # )
 )
 
 def main():
     rng = random.PRNGKey(0)
 
-    step_size = 0.003
+    step_size = 0.007
     num_epochs = 30
     batch_size = 128 #128
     momentum_mass = 0.9

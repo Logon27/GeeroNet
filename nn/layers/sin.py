@@ -43,8 +43,8 @@ def Sin(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tuple[
         
         k1, k2 = random.split(rng)
         output_shape = -1, out_dim
-        weights1, weights2, weights3, bias1, bias2, bias3 = weight_init(k1, (input_shape[-1], out_dim)), weight_init(k1, (input_shape[-1], out_dim)), weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim)), bias_init(k2, (1, out_dim)), bias_init(k2, (1, out_dim))
-        return output_shape, (weights1, weights2, weights3, bias1, bias2, bias3), ()
+        weights1, weights2, weights3, bias1 = weight_init(k1, (input_shape[-1], out_dim)), weight_init(k1, (out_dim, input_shape[-1])), weight_init(k1, (input_shape[-1], out_dim)), bias_init(k2, (1, out_dim))
+        return output_shape, (weights1, weights2, weights3, bias1), ()
 
     # kwargs is necessary due to rng being passed to some apply functions.
     def apply_fun(params: Params, state, inputs: ArrayLike, **kwargs) -> Array:
@@ -61,8 +61,30 @@ def Sin(out_dim: int, weight_init=glorot_normal(), bias_init=normal()) -> Tuple[
                 "Input must be 2 dimensional. Where inputs.shape = (batch_size, input_size). This helps eliminate any confusion with mixing vector and matrix multiplication."
             )
 
-        weights1, weights2, weights3, bias1, bias2, bias3 = params
-        return jnp.sin(jnp.matmul(inputs, weights1)) + jnp.sin(jnp.matmul(inputs, weights2)) + jnp.sin(jnp.matmul(inputs, weights3)) + bias1, state
+        weights1, weights2, weights3, bias1 = params
+
+        # print(jnp.sin(jnp.matmul(inputs, weights2)).shape)
+        # print(weights1.shape)
+        # print(jnp.matmul(jnp.sin(jnp.matmul(inputs, weights2)), weights1).shape)
+        # print("---")
+        # print(inputs.shape)
+        # print(jnp.matmul(jnp.sin(jnp.matmul(inputs, weights2)), weights1).shape)
+        # print("---")
+        # print((inputs - jnp.matmul(jnp.sin(jnp.matmul(inputs, weights2)), weights1)).shape)
+        # print(weights3.shape)
+        # exit()
+        # w_{3}\left(x-w_{2}\sin\left(x\cdot w_{1}\right)\right)+b_{1}
+        result = jnp.matmul((inputs - jnp.matmul(jnp.sin(jnp.matmul(inputs, weights1)), weights2)), weights3) + bias1, state
+        return result
+    
+        # Mimic cycloid
+        # result = jnp.matmul(1-jnp.cos(jnp.matmul(inputs, weights2)), weights1) + bias1, state
+
+        # regular sin
+        # weights1, weights2, weights3, bias1, bias2, bias3, bias4, bias5 = params
+        # return jnp.sin(jnp.matmul(inputs, weights1) + bias1) + jnp.sin(jnp.matmul(inputs, weights2) + bias2) + jnp.sin(jnp.matmul(inputs, weights3) + bias3) + bias4, state
+    
+        # return jnp.sin(jnp.matmul(inputs, weights1)) + jnp.sin(jnp.matmul(inputs, weights2)) + jnp.sin(jnp.matmul(inputs, weights3)) + bias1, state
         #return ((jnp.matmul(jnp.sin(inputs), weights1) + bias1) + (jnp.matmul(jnp.sin(inputs), weights2) + bias2) + (jnp.matmul(jnp.sin(inputs), weights3) + bias3)) / 3, state
         #return (jnp.matmul(inputs, jnp.sin(weights1)) + bias1) + jnp.sin(jnp.matmul(inputs, weights2) + bias2), state
         #return jnp.sin(jnp.matmul(inputs, weights1) + bias1) + jnp.sin(jnp.matmul(inputs, weights2) + bias2), state

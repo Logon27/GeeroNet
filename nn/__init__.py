@@ -23,7 +23,7 @@ from .combinators.shape_dependent import shape_dependent
 from .combinators.fan import FanOut, FanInSum, FanInConcat
 
 # Activation Functions
-from .activations.activations import Tanh, Relu, Exp, LogSoftmax, Softmax, Softplus, Sigmoid, Elu, LeakyRelu, Selu, Gelu
+from .activations.activations import Tanh, Relu, Exp, LogSoftmax, Softmax, Softplus, Sigmoid, Elu, LeakyRelu, Selu, Gelu, Sum, SinAct, SinAct2
 
 # Optimizers
 from .optimizers.sgd import sgd

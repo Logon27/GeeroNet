@@ -23,12 +23,14 @@ def accuracy(params, states, batch):
 
 net_init, net_predict = model_decorator(
     serial(
-        Conv(6, (5, 5), padding='SAME'), Elu,
-        Conv(16, (3, 3), padding='SAME'), Elu,
+        Conv(32, (5, 5), padding='SAME'), Elu,
+        Conv(64, (3, 3), padding='SAME'), Elu,
+        MaxPool((2, 2), strides=(2, 2)),
+        Conv(32, (3, 3), padding='SAME'), Elu,
+        Conv(32, (2, 2), padding='SAME'), Elu,
         Flatten,
-        Dense(120), Elu,
-        Dense(84), Elu,
-        Dense(10), LogSoftmax,
+        Sin(256),
+        LogSoftmax,
     )
 )
 
@@ -36,8 +38,8 @@ def main():
     rng = random.PRNGKey(0)
 
     step_size = 0.001
-    num_epochs = 10
-    batch_size = 128
+    num_epochs = 20
+    batch_size = 64
     momentum_mass = 0.9
     # IMPORTANT
     # If your network is larger and you test against the entire dataset for the accuracy.

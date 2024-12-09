@@ -38,6 +38,11 @@ def elementwise(fun, **fun_kwargs):
     apply_fun = lambda params, state, inputs, **kwargs: (fun(inputs, **fun_kwargs), state)
     return init_fun, apply_fun
 
+def newsin(fun, **fun_kwargs):
+    """Layer that applies a scalar function elementwise on its inputs."""
+    init_fun = lambda rng, input_shape: (input_shape, (), ())
+    apply_fun = lambda params, state, inputs, **kwargs: (fun(inputs, **fun_kwargs), state)
+    return init_fun, apply_fun
 
 Tanh = elementwise(jnp.tanh)
 Relu = elementwise(relu)
@@ -50,3 +55,6 @@ Elu = elementwise(elu)
 LeakyRelu = elementwise(leaky_relu)
 Selu = elementwise(selu)
 Gelu = elementwise(gelu)
+Sum = elementwise(jnp.sum, axis=1)
+SinAct = elementwise(jnp.sin)
+SinAct2 = newsin(jnp.sin)
